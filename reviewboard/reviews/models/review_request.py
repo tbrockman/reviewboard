@@ -658,11 +658,19 @@ class ReviewRequest(BaseReviewRequestDetails):
         except DiffSet.DoesNotExist:
             return None
 
-    def get_close_description(self):
-        """Returns a tuple (description, is_rich_text) for the close text.
+    def get_close_info(self):
+        """Return metadata of the most recent closing of a review request.
 
         This is a helper which is used to gather the data which is rendered in
         the close description boxes on various pages.
+
+        Returns:
+            dict:
+            Dictionary of form ``{
+                'close_description': str,
+                'is_rich_text': bool,
+                'timestamp': datetime,
+            }
         """
         # We're fetching all entries instead of just public ones because
         # another query may have already prefetched the list of
@@ -674,6 +682,7 @@ class ReviewRequest(BaseReviewRequestDetails):
         # wouldn't be saving much of anything with a filter.
         changedescs = list(self.changedescs.all())
         latest_changedesc = None
+        timestamp = None
 
         for changedesc in changedescs:
             if changedesc.public:
@@ -689,8 +698,33 @@ class ReviewRequest(BaseReviewRequestDetails):
             if status in (ReviewRequest.DISCARDED, ReviewRequest.SUBMITTED):
                 close_description = latest_changedesc.text
                 is_rich_text = latest_changedesc.rich_text
+                timestamp = latest_changedesc.timestamp
 
-        return (close_description, is_rich_text)
+        return {'close_description': close_description,
+                'is_rich_text': is_rich_text,
+                'timestamp': timestamp}
+
+    def get_close_description(self):
+        """Return metadata of the most recent closing of a review request.
+
+        This is a helper which is used to gather the data which is rendered in
+        the close description boxes on various pages.
+
+        .. deprecated:: 3.0
+           Use :py:meth:`get_close_info` instead
+
+        Returns:
+            tuple:
+            Tuple ``(close_description, is_rich_text)``, the first entry
+            containing the close description text and second containing
+            a boolean indicating whether it is rich text.
+        """
+        warnings.warn('ReviewRequest.get_close_description() is deprecated. '
+                      'Use ReviewRequest.get_close_info().',
+                      DeprecationWarning)
+
+        close_info = self.get_close_info()
+        return (close_info['close_description'], close_info['is_rich_text'])
 
     def get_blocks(self):
         """Returns the list of review request this one blocks.
@@ -759,21 +793,21 @@ class ReviewRequest(BaseReviewRequestDetails):
 
             rich_text (bool):
                 Indicates whether or not that the description is rich text.
-        
+
         Raises:
             ValueError:
                 The provided close type is not a valid value.
-            
+
             PermissionError:
                 The user does not have permission to close the review request.
-            
+
             TypeError:
                 Keyword arguments were supplied to the function.
-        
+
         .. versionchanged:: 3.0
            The ``type`` argument is deprecated: ``close_type`` should be used
            instead.
-           
+
            This method raises :py:exc:`ValueError` instead of
            :py:exc:`AttributeError` when the ``close_type`` has an incorrect
            value.
