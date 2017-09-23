@@ -11,9 +11,9 @@
    Review Request <a href="{{review_request_url}}">#{{review_request_id}}</a> -
 {%  endblocktrans %}
 {%  if review_request.status == 'S' %}
-{%   blocktrans %}
+{%   blocktrans with closeddateraw=close_timestamp|date:"c" closeddate=close_timestamp|date:"N d, Y, g:i a"%}
   Created {{dateadded}} and submitted
-  <time class="timesince" datetime="{{lastupdatedraw}}">{{lastupdated}}</time>
+  <time class="timesince" datetime="{{closeddateraw}}">{{closeddate}}</time>
 {%   endblocktrans %}
 {%  elif review_request.status == 'D' %}
 {%   blocktrans %}
