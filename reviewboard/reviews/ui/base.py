@@ -104,7 +104,7 @@ class ReviewUI(object):
         draft = self.review_request.get_draft(request.user)
         review_request_details = draft or self.review_request
 
-        close_info = review_request.get_close_info()
+        close_info = self.review_request.get_close_info()
         close_description = close_info['close_description']
         close_description_rich_text = close_info['is_rich_text']
         close_timestamp = close_info['timestamp']

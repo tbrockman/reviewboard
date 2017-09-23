@@ -705,10 +705,11 @@ class ReviewRequest(BaseReviewRequestDetails):
         .. deprecated:: 3.0
            Use review_request.get_close_info instead
         """
-        warnings.warn('reviewboard.reviews.models.review_request.get_close_description() is '
-             'deprecated. Use '
-             'reviewboard.reviews.models.review_request.get_close_description instead.',
-             DeprecationWarning)
+        warnings.warn('reviewboard.reviews.models.review_request.'
+                      'get_close_description() is deprecated. Use '
+                      'reviewboard.reviews.models.review_request.'
+                      'get_close_description instead.',
+                      DeprecationWarning)
         close_info = self.get_close_info()
         return (close_info['close_description'], close_info['is_rich_text'])
 
