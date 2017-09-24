@@ -105,16 +105,13 @@ class ReviewUI(object):
         review_request_details = draft or self.review_request
 
         close_info = self.review_request.get_close_info()
-        close_description = close_info['close_description']
-        close_description_rich_text = close_info['is_rich_text']
-        close_timestamp = close_info['timestamp']
         caption = self.get_caption(draft)
 
         context = make_review_request_context(request, self.review_request, {
             'caption': caption,
-            'close_description': close_description,
-            'close_description_rich_text': close_description_rich_text,
-            'close_timestamp': close_timestamp,
+            'close_description': close_info['close_description'],
+            'close_description_rich_text': close_info['is_rich_text'],
+            'close_timestamp': close_info['timestamp'],
             'comments': self.get_comments(),
             'draft': draft,
             'last_activity_time': last_activity_time,

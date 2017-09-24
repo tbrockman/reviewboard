@@ -652,9 +652,6 @@ class ReviewRequestDetailView(ReviewRequestViewMixin, ETagViewMixin,
 
         review = review_request.get_pending_review(request.user)
         close_info = review_request.get_close_info()
-        close_description = close_info['close_description']
-        close_description_rich_text = close_info['is_rich_text']
-        close_timestamp = close_info['timestamp']
 
         file_attachments = \
             get_latest_file_attachments(data.active_file_attachments)
@@ -674,9 +671,9 @@ class ReviewRequestDetailView(ReviewRequestViewMixin, ETagViewMixin,
             'last_visited': self.last_visited,
             'review': review,
             'request': request,
-            'close_description': close_description,
-            'close_description_rich_text': close_description_rich_text,
-            'close_timestamp': close_timestamp,
+            'close_description': close_info['close_description'],
+            'close_description_rich_text': close_info['is_rich_text'],
+            'close_timestamp': close_info['timestamp'],
             'issue_counts': data.issue_counts,
             'issues': data.issues,
             'file_attachments': file_attachments,
@@ -1124,17 +1121,14 @@ class ReviewsDiffViewerView(ReviewRequestViewMixin, DiffViewerView):
             comments.setdefault(key, []).append(comment)
 
         close_info = self.review_request.get_close_info()
-        close_description = close_info['close_description']
-        close_description_rich_text = close_info['is_rich_text']
-        close_timestamp = close_info['timestamp']
 
         siteconfig = SiteConfiguration.objects.get_current()
 
         context = super(ReviewsDiffViewerView, self).get_context_data(**kwargs)
         context.update({
-            'close_description': close_description,
-            'close_description_rich_text': close_description_rich_text,
-            'close_timestamp': close_timestamp,
+            'close_description': close_info['close_description'],
+            'close_description_rich_text': close_info['is_rich_text'],
+            'close_timestamp': close_info['timestamp'],
             'diffsets': diffsets,
             'latest_diffset': latest_diffset,
             'review': pending_review,
