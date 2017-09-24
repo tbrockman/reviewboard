@@ -659,10 +659,13 @@ class ReviewRequest(BaseReviewRequestDetails):
             return None
 
     def get_close_info(self):
-        """Returns a dictionary { description, is_rich_text, last_submitted }
+        """Returns information pertaining to the most recent closing of \
+        a review request.
 
-        This amends functionality provided by get_close_description to also
-        include the timestamp that the request was closed.
+        Returns:
+            dict:
+            Dictionary with keys ``close_description``, ``is_rich_text``,\
+            and ``timestamp``.
         """
         # We're fetching all entries instead of just public ones because
         # another query may have already prefetched the list of
@@ -703,13 +706,12 @@ class ReviewRequest(BaseReviewRequestDetails):
         the close description boxes on various pages.
 
         .. deprecated:: 3.0
-           Use review_request.get_close_info instead
+           Use :py:meth:`get_close_info` instead
         """
-        warnings.warn('reviewboard.reviews.models.review_request.'
-                      'get_close_description() is deprecated. Use '
-                      'reviewboard.reviews.models.review_request.'
-                      'get_close_description instead.',
+        warnings.warn('ReviewRequest.get_close_description() is deprecated. '
+                      'Use ReviewRequest.get_close_info().',
                       DeprecationWarning)
+
         close_info = self.get_close_info()
         return (close_info['close_description'], close_info['is_rich_text'])
 
