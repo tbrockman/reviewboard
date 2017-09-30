@@ -5,7 +5,7 @@
 {% review_request_field review_request_details 'summary' %}
  {{field.as_html}}
 {% end_review_request_field %}
- <p>
+ <p class="hide-mobile">
 {% with review_request_details.time_added|date as dateadded and review_request_details.last_updated as lastupdated and review_request_details.last_updated|date:"c" as lastupdatedraw and latest_diffset.timestamp|date:"c" as lastdiffdateraw and latest_diffset.timestamp as lastdiffdate %}
 {%  blocktrans with review_request.display_id as review_request_id and review_request.get_absolute_url as review_request_url %}
    Review Request <a href="{{review_request_url}}">#{{review_request_id}}</a> -
@@ -54,8 +54,8 @@
  </thead>
  <tbody id="fieldset_{{fieldset.fieldset_id}}_body">
 {%   for_review_request_field review_request_details fieldset %}
-  <tr>
-   <th><label for="field_{{field.field_id}}">{{field.label}}:</label></th>
+  <tr class="{% if field.label == 'Depends On' or field.label == 'Commit' %} hide-mobile {% endif %}">
+   <th><label for="field_{{field.field_id}}" >{{field.label}}:</label></th>
    <td>{{field.as_html}}</td>
   </tr>
 {%   end_for_review_request_field %}
