@@ -508,20 +508,24 @@ a.mobile-actions-menu-label {
  * Mobile Stylings
  ****************************************************************************/
 
+.show-mobile {
+  display: none;
+}
+
 @media (max-width: 720px) {
-    .hide-mobile {
-        display: none;
-    }
+  .hide-mobile {
+    display: none;
+  }
 
-    .show-mobile {
-        display: block;
-    }
+  .show-mobile {
+    display: block !important;
+  }
 
-    .softdate {
-        color: #7d786b;
-    }
+  .softdate {
+    color: #7d786b;
+  }
 
-    #field_summary{
-        font-size: 16px !important;
-    }
+  #field_summary{
+    font-size: 16px !important;
+  }
 }

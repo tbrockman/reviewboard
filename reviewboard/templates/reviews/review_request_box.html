@@ -5,8 +5,8 @@
 {% review_request_field review_request_details 'summary' %}
  {{field.as_html}}
 {% end_review_request_field %}
-<p>
-    by <a class="user" href="/users/{{review_request_details.submitter.username}}/">{{review_request_details.submitter.username}}</a>&nbsp-&nbsp<time class="timesince softdate" datetime="{{review_request_details.last_updated|date:'c'}}">{{review_request_details.last_updated|date}}</time>
+<p class="show-mobile">
+ by <a class="user" href="/users/{{review_request_details.submitter.username}}/">{{review_request_details.submitter.username}}</a>&nbsp-&nbsp<time class="timesince softdate" datetime="{{review_request_details.last_updated|date:'c'}}">{{review_request_details.last_updated|date}}</time>
 </p>
 <p class="hide-mobile">
 {% with review_request_details.time_added|date as dateadded and review_request_details.last_updated as lastupdated and review_request_details.last_updated|date:"c" as lastupdatedraw and latest_diffset.timestamp|date:"c" as lastdiffdateraw and latest_diffset.timestamp as lastdiffdate %}
@@ -36,7 +36,7 @@
 {%   endblocktrans %}
 {%  endif %}
 {% endwith %}
- </p>
+</p>
 </div>
 <div id="review-request-warning"></div>
 
@@ -67,8 +67,7 @@
 {% end_for_review_request_fieldset %}
 </table>
 
-{% if not diffview %}
-<div id="review-request-main">
+<div id="review-request-main" class="{% if diffview %} hide-mobile {% endif %}">
 {% for_review_request_field review_request_details 'main' %}
 {%  if field.field_id != 'summary' %}
  <div class="review-request-section">
@@ -78,7 +77,6 @@
 {%  endif %}
 {% end_for_review_request_field %}
 </div>
-{% endif %}
 
 
 <div id="review-request-extra">
