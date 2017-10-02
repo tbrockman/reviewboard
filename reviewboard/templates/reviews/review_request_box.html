@@ -5,7 +5,10 @@
 {% review_request_field review_request_details 'summary' %}
  {{field.as_html}}
 {% end_review_request_field %}
- <p class="hide-mobile">
+<p>
+    by <a class="user" href="/users/{{review_request_details.submitter.username}}/">{{review_request_details.submitter.username}}</a>&nbsp-&nbsp<time class="timesince softdate" datetime="{{review_request_details.last_updated|date:'c'}}">{{review_request_details.last_updated|date}}</time>
+</p>
+<p class="hide-mobile">
 {% with review_request_details.time_added|date as dateadded and review_request_details.last_updated as lastupdated and review_request_details.last_updated|date:"c" as lastupdatedraw and latest_diffset.timestamp|date:"c" as lastdiffdateraw and latest_diffset.timestamp as lastdiffdate %}
 {%  blocktrans with review_request.display_id as review_request_id and review_request.get_absolute_url as review_request_url %}
    Review Request <a href="{{review_request_url}}">#{{review_request_id}}</a> -
@@ -37,7 +40,7 @@
 </div>
 <div id="review-request-warning"></div>
 
-<table id="review-request-details" class="review-request-section">
+<table id="review-request-details" class="review-request-section hide-mobile">
  <colgroup>
   <col width="0%" />
   <col width="100%" />
@@ -52,7 +55,7 @@
 {%   endif %}
   </tr>
  </thead>
- <tbody id="fieldset_{{fieldset.fieldset_id}}_body">
+ <tbody class="{% if fieldset.fieldset_id == 'reviewers' %} hide-mobile {% endif %}" id="fieldset_{{fieldset.fieldset_id}}_body">
 {%   for_review_request_field review_request_details fieldset %}
   <tr class="{% if field.label == 'Depends On' or field.label == 'Commit' %} hide-mobile {% endif %}">
    <th><label for="field_{{field.field_id}}" >{{field.label}}:</label></th>
@@ -64,6 +67,7 @@
 {% end_for_review_request_fieldset %}
 </table>
 
+{% if not diffview %}
 <div id="review-request-main">
 {% for_review_request_field review_request_details 'main' %}
 {%  if field.field_id != 'summary' %}
@@ -74,6 +78,8 @@
 {%  endif %}
 {% end_for_review_request_field %}
 </div>
+{% endif %}
+
 
 <div id="review-request-extra">
  <div class="review-request-section"{% if not screenshots %} style="display: none;"{% endif %}>
