@@ -7,6 +7,7 @@
 {% end_review_request_field %}
 <p class="show-mobile">
  by <a class="user" href="/users/{{review_request_details.submitter.username}}/">{{review_request_details.submitter.username}}</a>&nbsp-&nbsp<time class="timesince softdate" datetime="{{review_request_details.last_updated|date:'c'}}">{{review_request_details.last_updated|date}}</time>
+ {%  include "reviews/review_request_box_mobile.html" %}
 </p>
 <p class="hide-mobile">
 {% with review_request_details.time_added|date as dateadded and review_request_details.last_updated as lastupdated and review_request_details.last_updated|date:"c" as lastupdatedraw and latest_diffset.timestamp|date:"c" as lastdiffdateraw and latest_diffset.timestamp as lastdiffdate %}
