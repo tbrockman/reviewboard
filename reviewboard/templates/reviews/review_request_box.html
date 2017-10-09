@@ -5,10 +5,15 @@
 {% review_request_field review_request_details 'summary' %}
  {{field.as_html}}
 {% end_review_request_field %}
-<p class="show-mobile">
- by <a class="user" href="/users/{{review_request_details.submitter.username}}/">{{review_request_details.submitter.username}}</a>&nbsp-&nbsp<time class="timesince softdate" datetime="{{review_request_details.last_updated|date:'c'}}">{{review_request_details.last_updated|date}}</time>
+<div class="show-mobile mobile-review-request-details">
+ <p>
+  by <a class="user" href="/users/{{review_request_details.submitter.username}}/">{{review_request_details.submitter.username}}</a>
+ </p>
+ <p class="softdate">
+  - Last updated <time class="timesince" datetime="{{review_request_details.last_updated|date:'c'}}">{{review_request_details.last_updated|date}}</time>
+ </p>
  {%  include "reviews/review_request_box_mobile.html" %}
-</p>
+</div>
 <p class="hide-mobile">
 {% with review_request_details.time_added|date as dateadded and review_request_details.last_updated as lastupdated and review_request_details.last_updated|date:"c" as lastupdatedraw and latest_diffset.timestamp|date:"c" as lastdiffdateraw and latest_diffset.timestamp as lastdiffdate %}
 {%  blocktrans with review_request.display_id as review_request_id and review_request.get_absolute_url as review_request_url %}

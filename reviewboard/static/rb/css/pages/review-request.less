@@ -518,14 +518,86 @@ a.mobile-actions-menu-label {
   }
 
   .show-mobile {
-    display: block !important;
+    display: inline-block !important;
   }
 
   .softdate {
     color: #7d786b;
   }
 
-  #field_summary{
+  #field_summary {
     font-size: 16px !important;
   }
+
+  .diff-file-info {
+    white-space: normal !important;
+  }
+
+  #diff_statistics {
+
+    width: 84%;
+    padding: 10px;
+    margin: 10px;
+    border: 1px solid #9e9a7f;
+    border-radius: 4px;
+    background-color: #fff;
+
+    * {
+      font-size: 12px;
+    }
+
+    .line-summary {
+      * {
+        display: inline-block;
+      }
+
+      > div {
+        margin-right: 5px;
+      }
+
+      > div:last-child {
+        margin-right: 0px;
+        padding-right: 0px;
+      }
+    }
+
+    .line-stats-text {
+
+    }
+
+    .lines-added {
+      color: #027e0c;
+    }
+
+    .lines-removed {
+      color: #a50707;
+    }
+
+    .lines-changed {
+      color: #9b8010;
+    }
+
+    .files-changed-text {
+      display: inline-block;
+      margin-left: 5px;
+    }
+
+    .files-changed {
+      padding-bottom: 0.5em;
+      * {
+        font-size: 22px;
+      }
+      .fa-caret-down {
+        float: right;
+      }
+    }
+  }
+
+  .mobile-review-request-details {
+    p {
+      margin-top: 0.5em;
+      display: inline-block;
+    }
+  }
+
 }

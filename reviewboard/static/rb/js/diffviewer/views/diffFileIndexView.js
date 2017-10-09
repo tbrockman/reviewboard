@@ -14,6 +14,13 @@ RB.DiffFileIndexView = Backbone.View.extend({
         'click a': '_onAnchorClicked'
     },
 
+    stats: {
+        totalInserts: 0,
+        totalDeletes: 0,
+        totalReplaces: 0,
+        totalFiles: 0,
+    },
+
     /*
      * Initializes the view.
      */
@@ -32,7 +39,6 @@ RB.DiffFileIndexView = Backbone.View.extend({
         this.$el.empty();
         this._$itemsTable = $('<table/>').appendTo(this.$el);
         this._$items = this.$('tr');
-
         // Add the files from the collection
         this.update();
 
@@ -72,7 +78,6 @@ RB.DiffFileIndexView = Backbone.View.extend({
      */
     update: function() {
         this._$itemsTable.empty();
-
         this.collection.each(function(file) {
             this._$itemsTable.append(this._itemTemplate(
                 _.defaults({
@@ -118,22 +123,37 @@ RB.DiffFileIndexView = Backbone.View.extend({
                   gettext('There was an error loading this diff. See the details below.'));
     },
 
-    /*
-     * Renders the display of a loaded diff.
-     */
-    _renderDiffEntry: function($item, diffReviewableView) {
+    accumulateStats: function(fileStatistics) {
+        this.stats.totalInserts += fileStatistics.numInserts;
+        this.stats.totalDeletes += fileStatistics.numDeletes;
+        this.stats.totalReplaces += fileStatistics.numReplaces;
+        this.stats.totalFiles += 1;
+        if (!this.diff_statistics) {
+            // store the dom elements so we don't have to re-query
+            var parent = $("#diff_statistics");
+            this.diff_statistics = {
+                parent: parent,
+                lines_added: parent.find(".lines-added-text"),
+                lines_changed: parent.find(".lines-changed-text"),
+                lines_removed: parent.find(".lines-removed-text"),
+                files_changed: parent.find(".files-changed-text"),
+            };
+        }
+        if (this.diff_statistics) {
+            this.diff_statistics.lines_added.text(this.stats.totalInserts + " lines added");
+            this.diff_statistics.lines_changed.text(this.stats.totalReplaces + " lines modified");
+            this.diff_statistics.lines_removed.text(this.stats.totalDeletes + " lines removed");
+            this.diff_statistics.files_changed.text(this.stats.totalFiles + " files in diff");
+        }
+    },
+
+    calculateFileStats: function($item, diffReviewableView, fileDeleted, fileAdded) {
         var $table = diffReviewableView.$el,
-            fileDeleted = $item.hasClass('deleted-file'),
-            fileAdded = $item.hasClass('new-file'),
             linesEqual = $table.data('lines-equal'),
             numDeletes = 0,
             numInserts = 0,
             numReplaces = 0,
-            chunksList = [],
-            iconView,
-            $fileIcon = $item.find('.diff-file-icon'),
-            tooltip = '',
-            tooltipParts = [];
+            chunksList = [];
 
         if (fileAdded) {
             numInserts = 1;
@@ -165,41 +185,61 @@ RB.DiffFileIndexView = Backbone.View.extend({
             /* Add clickable blocks for each diff chunk. */
             $item.find('.diff-chunks').html(chunksList.join(''));
         }
+        return {
+            "linesEqual": linesEqual,
+            "numInserts": numInserts,
+            "numDeletes": numDeletes,
+            "numReplaces": numReplaces,
+            "totalLines": linesEqual + numDeletes + numInserts + numReplaces,
+            "chunksList": chunksList
+        }
+    },
+    /*
+     * Renders the display of a loaded diff.
+     */
+    _renderDiffEntry: function($item, diffReviewableView) {
+        var iconView,
+        tooltip = '',
+        tooltipParts = [],
+        $fileIcon = $item.find('.diff-file-icon'),
+        fileDeleted = $item.hasClass('deleted-file'),
+        fileAdded = $item.hasClass('new-file'),
+        fileStatistics = this.calculateFileStats($item, diffReviewableView, fileDeleted, fileAdded);
+        this.accumulateStats(fileStatistics);
 
         /* Render the complexity icon. */
         iconView = new RB.DiffComplexityIconView({
-            numInserts: numInserts,
-            numDeletes: numDeletes,
-            numReplaces: numReplaces,
-            totalLines: linesEqual + numDeletes + numInserts + numReplaces
+            numInserts: fileStatistics.numInserts,
+            numDeletes: fileStatistics.numDeletes,
+            numReplaces: fileStatistics.numReplaces,
+            totalLines: fileStatistics.totalLines
         });
         $fileIcon
             .empty()
             .append(iconView.$el);
         iconView.render();
-
         /* Add tooltip for icon */
         if (fileAdded) {
             tooltip = gettext('New file');
         } else if (fileDeleted) {
             tooltip = gettext('Deleted file');
         } else {
-            if (numInserts > 0) {
+            if (fileStatistics.numInserts > 0) {
                 tooltipParts.push(interpolate(
-                    ngettext('%s new line', '%s new lines', numInserts),
-                    [numInserts]));
+                    ngettext('%s new line', '%s new lines', fileStatistics.numInserts),
+                    [fileStatistics.numInserts]));
             }
 
-            if (numReplaces > 0) {
+            if (fileStatistics.numReplaces > 0) {
                 tooltipParts.push(interpolate(
-                    ngettext('%s line changed', '%s lines changed', numReplaces),
-                    [numReplaces]));
+                    ngettext('%s line changed', '%s lines changed', fileStatistics.numReplaces),
+                    [fileStatistics.numReplaces]));
             }
 
-            if (numDeletes > 0) {
+            if (fileStatistics.numDeletes > 0) {
                 tooltipParts.push(interpolate(
-                    ngettext('%s line removed', '%s lines removed', numDeletes),
-                    [numDeletes]));
+                    ngettext('%s line removed', '%s lines removed', fileStatistics.numDeletes),
+                    [fileStatistics.numDeletes]));
             }
 
             tooltip = tooltipParts.join(', ');

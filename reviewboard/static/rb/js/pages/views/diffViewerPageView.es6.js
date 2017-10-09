@@ -308,6 +308,7 @@ RB.DiffViewerPageView = RB.ReviewablePageView.extend({
      *         diff in order to show its deleted content.
      */
     queueLoadDiff(diffReviewable, options={}) {
+
         $.funcQueue('diff_files').add(() => {
             const fileDiffID = diffReviewable.get('fileDiffID');
 
@@ -395,6 +396,7 @@ RB.DiffViewerPageView = RB.ReviewablePageView.extend({
 
         this._diffFileIndexView.addDiff(this._diffReviewableViews.length,
                                         diffReviewableView);
+
 
         this._diffReviewableViews.push(diffReviewableView);
         diffReviewableView.render();
