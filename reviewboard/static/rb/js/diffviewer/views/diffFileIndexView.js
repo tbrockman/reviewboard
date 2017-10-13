@@ -186,12 +186,12 @@ RB.DiffFileIndexView = Backbone.View.extend({
             $item.find('.diff-chunks').html(chunksList.join(''));
         }
         return {
-            "linesEqual": linesEqual,
-            "numInserts": numInserts,
-            "numDeletes": numDeletes,
-            "numReplaces": numReplaces,
-            "totalLines": linesEqual + numDeletes + numInserts + numReplaces,
-            "chunksList": chunksList
+            'linesEqual': linesEqual,
+            'numInserts': numInserts,
+            'numDeletes': numDeletes,
+            'numReplaces': numReplaces,
+            'totalLines': linesEqual + numDeletes + numInserts + numReplaces,
+            'chunksList': chunksList,
         }
     },
     /*

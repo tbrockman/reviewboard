@@ -513,12 +513,13 @@ a.mobile-actions-menu-label {
 }
 
 @media (max-width: 720px) {
+
   .hide-mobile {
     display: none;
   }
 
   .show-mobile {
-    display: inline-block !important;
+    display: block !important;
   }
 
   .softdate {
@@ -533,23 +534,20 @@ a.mobile-actions-menu-label {
     white-space: normal !important;
   }
 
+  .diff-stat-text {
+    display: block;
+    cursor: pointer;
+    padding: 10px;
+  }
+
   #diff_statistics {
 
-    width: 84%;
-    padding: 10px;
     margin: 10px;
     border: 1px solid #9e9a7f;
     border-radius: 4px;
     background-color: #fff;
 
-    * {
-      font-size: 12px;
-    }
-
     .line-summary {
-      * {
-        display: inline-block;
-      }
 
       > div {
         margin-right: 5px;
@@ -562,7 +560,7 @@ a.mobile-actions-menu-label {
     }
 
     .line-stats-text {
-
+      display: inline-block;
     }
 
     .lines-added {
@@ -583,13 +581,24 @@ a.mobile-actions-menu-label {
     }
 
     .files-changed {
+
       padding-bottom: 0.5em;
+
       * {
         font-size: 22px;
       }
-      .fa-caret-down {
+
+      #toggle-indicator.fa {
         float: right;
       }
+    }
+
+    .diff-list {
+      border-top: 1px solid #9e9a7f;
+    }
+
+    .diff-file-icon {
+      padding: 5px;
     }
   }
 

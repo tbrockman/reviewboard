@@ -28,6 +28,7 @@ RB.DiffViewerPageView = RB.ReviewablePageView.extend({
     events: _.extend({
         'click .toggle-whitespace-only-chunks': '_toggleWhitespaceOnlyChunks',
         'click .toggle-show-whitespace': '_toggleShowExtraWhitespace',
+        'click .toggle-show-anchors': '_toggleShowAnchors',
     }, RB.ReviewablePageView.prototype.events),
 
     _fileEntryTemplate: _.template(dedent`
@@ -838,5 +839,9 @@ RB.DiffViewerPageView = RB.ReviewablePageView.extend({
 
         this.router.navigate(`${url}/?page=${page}`, {trigger: true});
     },
+
+    _toggleShowAnchors() {
+        console.log('we did it');
+    }
 });
 _.extend(RB.DiffViewerPageView.prototype, RB.KeyBindingsMixin);
