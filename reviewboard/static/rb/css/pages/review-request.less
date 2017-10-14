@@ -594,11 +594,33 @@ a.mobile-actions-menu-label {
     }
 
     .diff-list {
-      border-top: 1px solid #9e9a7f;
+
+      table {
+        border-collapse: collapse;
+        border-top: 1px solid #9e9a7f;
+        width: 100%;
+
+        tbody > tr {
+          display: block;
+          cursor: pointer;
+          padding: 0.5em 0;
+          border-bottom: 1px solid #9e9a7f;
+        }
+
+        tbody > tr:last-child {
+          border-bottom: none;
+        }
+      }
     }
 
     .diff-file-icon {
       padding: 5px;
+    }
+
+    .diff-file-info {
+      a {
+        color: #555;
+      }
     }
   }
 
