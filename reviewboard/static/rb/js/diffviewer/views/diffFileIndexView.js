@@ -264,7 +264,13 @@ RB.DiffFileIndexView = Backbone.View.extend({
      */
     _onAnchorClicked: function(e) {
         e.preventDefault();
-        var target = $(e.target).find('a')[0];
+        var target;
+        if (e.target.tagName != 'A')
+            target = $(e.target).find('a')[0];
+        else {
+            target = e.target;
+        }
         this.trigger('anchorClicked', target.href.split('#')[1]);
+
     }
 });

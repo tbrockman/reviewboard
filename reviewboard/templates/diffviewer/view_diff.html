@@ -80,19 +80,19 @@
  </div>
 </div>
 
-<ul id="view_controls">
+<div id="view_controls">
 {%    if collapseall %}
- <li><a href=".?expand=1"><span class="fa fa-plus"></span> {% trans "Expand changes" %}</a></li>
+ <div><a href=".?expand=1"><span class="fa fa-plus"></span> {% trans "Expand changes" %}</a></div>
 {%    else %}
- <li><a href=".?collapse=1"><span class="fa fa-minus"></span> {% trans "Collapse changes" %}</a></li>
+ <div><a href=".?collapse=1"><span class="fa fa-minus"></span> {% trans "Collapse changes" %}</a></div>
 {%    endif %}
 {%    if siteconfig_settings.diffviewer_show_trailing_whitespace %}
- <li class="ew" style="display:none;"><a href="#" class="toggle-show-whitespace"><span class="fa fa-minus"></span> {% trans "Hide extra whitespace" %}</a></li>
- <li class="ew"><a href="#" class="toggle-show-whitespace"><span class="fa fa-plus"></span> {% trans "Show extra whitespace" %}</a></li>
+ <div class="ew" style="display:none;"><a href="#" class="toggle-show-whitespace"><span class="fa fa-minus"></span> {% trans "Hide extra whitespace" %}</a></div>
+ <div class="ew"><a href="#" class="toggle-show-whitespace"><span class="fa fa-plus"></span> {% trans "Show extra whitespace" %}</a></div>
 {%    endif %}
- <li class="ws"><a href="#" class="toggle-whitespace-only-chunks"><span class="fa fa-minus"></span> {% trans "Hide whitespace changes" %}</a></li>
- <li  class="ws" style="display:none;"><a href="#" class="toggle-whitespace-only-chunks"><span class="fa fa-plus"></span> {% trans "Show whitespace changes" %}</a></li>
-</ul>
+ <div class="ws"><a href="#" class="toggle-whitespace-only-chunks"><span class="fa fa-minus"></span> {% trans "Hide whitespace changes" %}</a></div>
+ <div  class="ws" style="display:none;"><a href="#" class="toggle-whitespace-only-chunks"><span class="fa fa-plus"></span> {% trans "Show whitespace changes" %}</a></div>
+</div>
 
 <div id="diffs"></div>
 <div id="pagination2"></div>

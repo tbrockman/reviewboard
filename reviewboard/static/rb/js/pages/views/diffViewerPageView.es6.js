@@ -789,7 +789,14 @@ RB.DiffViewerPageView = RB.ReviewablePageView.extend({
         }
 
         this._chunkHighlighter.updateLayout();
-        this.renderDiffFileIndexView();
+
+        // only re-render diffFileIndexView if transitioning screen sizes
+
+        if ((this.lastWidth <= 720 && window.innerWidth > 720) ||
+            this.lastWidth > 720 && window.innerWidth <= 720) {
+            this.renderDiffFileIndexView();
+        }
+        this.lastWidth = window.innerWidth;
     },
 
     /**
