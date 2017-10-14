@@ -196,7 +196,7 @@ RB.DiffFileIndexView = Backbone.View.extend({
             'numReplaces': numReplaces,
             'totalLines': linesEqual + numDeletes + numInserts + numReplaces,
             'chunksList': chunksList,
-        }
+        };
     },
     /*
      * Renders the display of a loaded diff.
