@@ -11,7 +11,7 @@ RB.DiffFileIndexView = Backbone.View.extend({
     ),
 
     events: {
-        'click a': '_onAnchorClicked'
+        'click .clickable-row ': '_onAnchorClicked'
     },
 
     stats: {
@@ -20,6 +20,8 @@ RB.DiffFileIndexView = Backbone.View.extend({
         totalReplaces: 0,
         totalFiles: 0,
     },
+
+    loadedItems: [],
 
     /*
      * Initializes the view.
@@ -40,13 +42,14 @@ RB.DiffFileIndexView = Backbone.View.extend({
         this._$itemsTable = $('<table/>').appendTo(this.$el);
         this._$items = this.$('tr');
         // Add the files from the collection
+
         this.update();
 
         return this;
     },
 
     _itemTemplate: _.template([
-        '<tr class="loading<%',
+        '<tr class="clickable-row loading<%',
         ' if (newfile) { print(" new-file"); }',
         ' if (binary) { print(" binary-file"); }',
         ' if (deleted) { print(" deleted-file"); }',
@@ -100,6 +103,7 @@ RB.DiffFileIndexView = Backbone.View.extend({
     addDiff: function(index, diffReviewableView) {
         var $item = $(this._$items[index])
             .removeClass('loading');
+        this.loadedItems.push(index);
 
         if (diffReviewableView.$el.hasClass('diff-error')) {
             this._renderDiffError($item);
@@ -260,7 +264,7 @@ RB.DiffFileIndexView = Backbone.View.extend({
      */
     _onAnchorClicked: function(e) {
         e.preventDefault();
-
-        this.trigger('anchorClicked', e.target.href.split('#')[1]);
+        var target = $(e.target).find('a')[0];
+        this.trigger('anchorClicked', target.href.split('#')[1]);
     }
 });
