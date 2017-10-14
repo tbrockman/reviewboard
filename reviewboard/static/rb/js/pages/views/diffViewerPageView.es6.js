@@ -202,14 +202,7 @@ RB.DiffViewerPageView = RB.ReviewablePageView.extend({
 
         this._$controls = $('#view_controls');
 
-        this._diffFileIndexView = new RB.DiffFileIndexView({
-            el: $('#diff_index'),
-            collection: this.model.files,
-        });
-        this._diffFileIndexView.render();
-
-        this.listenTo(this._diffFileIndexView, 'anchorClicked',
-                      this.selectAnchorByName);
+        this.renderDiffFileIndexView();
 
         this._diffRevisionLabelView = new RB.DiffRevisionLabelView({
             el: $('#diff_revision_label'),
@@ -287,6 +280,29 @@ RB.DiffViewerPageView = RB.ReviewablePageView.extend({
         }
 
         return this;
+    },
+
+    renderDiffFileIndexView: function renderDiffFileIndexView() {
+
+        if (window.innerWidth <= 720) {
+            this.show = true;
+            this._diffFileIndexView = new RB.DiffFileIndexView({
+                el: $('.diff-list'),
+                collection: this.model.files
+            });
+            this._diffFileIndexView.render();
+            this.listenTo(this._diffFileIndexView, 'anchorClicked', this.selectAnchorByName);
+        }
+
+        else {
+            this._diffFileIndexView = new RB.DiffFileIndexView({
+                el: $('#diff_index'),
+                collection: this.model.files
+            });
+            this._diffFileIndexView.render();
+
+            this.listenTo(this._diffFileIndexView, 'anchorClicked', this.selectAnchorByName);
+        }
     },
 
     /**
@@ -773,6 +789,7 @@ RB.DiffViewerPageView = RB.ReviewablePageView.extend({
         }
 
         this._chunkHighlighter.updateLayout();
+        this.renderDiffFileIndexView();
     },
 
     /**
@@ -840,8 +857,19 @@ RB.DiffViewerPageView = RB.ReviewablePageView.extend({
         this.router.navigate(`${url}/?page=${page}`, {trigger: true});
     },
 
-    _toggleShowAnchors() {
-        console.log('we did it');
-    }
+    _toggleShowAnchors: function _toggleShowAnchors() {
+        this.show = !this.show;
+        if (!this.diffList) {
+            this.diffList = $('.diff-list');
+        }
+        if (this.show) {
+            this.diffList.show();
+        }
+        else {
+            this.diffList.hide();
+        }
+        $('#toggle-indicator').toggleClass("fa-caret-down ");
+        $('#toggle-indicator').toggleClass("fa-caret-up ");
+    },
 });
 _.extend(RB.DiffViewerPageView.prototype, RB.KeyBindingsMixin);
