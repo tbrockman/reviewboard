@@ -327,6 +327,8 @@ class DiffFragmentView(View):
                 context=context,
                 renderer_settings=renderer_settings,
                 *args, **kwargs)
+            print args, kwargs
+            raw_input()
             response = renderer.render_to_response(request)
         except PatchError as e:
             logging.warning(
