@@ -285,7 +285,6 @@ RB.DiffViewerPageView = RB.ReviewablePageView.extend({
     renderDiffFileIndexView: function renderDiffFileIndexView() {
 
         if (window.innerWidth <= 720) {
-            console.log('should be here');
             this.show = true;
             this._diffFileIndexView = new RB.DiffFileIndexView({
                 el: $('.diff-list'),

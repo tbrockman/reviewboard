@@ -322,13 +322,13 @@ class DiffFragmentView(View):
 
         try:
             context = self.get_context_data(**kwargs)
+            context['view'] = self.request.GET.get('view', 'side-by-side')
 
             renderer = self.create_renderer(
                 context=context,
                 renderer_settings=renderer_settings,
                 *args, **kwargs)
-            print args, kwargs
-            raw_input()
+
             response = renderer.render_to_response(request)
         except PatchError as e:
             logging.warning(
