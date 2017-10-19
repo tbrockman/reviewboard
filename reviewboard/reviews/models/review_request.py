@@ -11,7 +11,8 @@ from django.db.models import Count, Q
 from django.utils import six, timezone
 from django.utils.translation import ugettext_lazy as _
 from djblets.cache.backend import make_cache_key
-from djblets.db.fields import CounterField, ModificationTimestampField
+from djblets.db.fields import (CounterField, ModificationTimestampField,
+                               RelationCounterField)
 from djblets.db.query import get_object_or_none
 
 from reviewboard.attachments.models import (FileAttachment,
@@ -48,7 +49,9 @@ def fetch_issue_counts(review_request, extra_query=None):
     issue_counts = {
         BaseComment.OPEN: 0,
         BaseComment.RESOLVED: 0,
-        BaseComment.DROPPED: 0
+        BaseComment.DROPPED: 0,
+        BaseComment.VERIFYING_RESOLVED: 0,
+        BaseComment.VERIFYING_DROPPED: 0,
     }
 
     q = Q(public=True) & Q(base_reply_to__isnull=True)
@@ -118,11 +121,15 @@ def _initialize_issue_counts(review_request):
     review_request.issue_open_count = issue_counts[BaseComment.OPEN]
     review_request.issue_resolved_count = issue_counts[BaseComment.RESOLVED]
     review_request.issue_dropped_count = issue_counts[BaseComment.DROPPED]
+    review_request.issue_verifying_count = (
+        issue_counts[BaseComment.VERIFYING_RESOLVED] +
+        issue_counts[BaseComment.VERIFYING_DROPPED])
 
     review_request.save(update_fields=[
         'issue_open_count',
         'issue_resolved_count',
-        'issue_dropped_count'
+        'issue_dropped_count',
+        'issue_verifying_count',
     ])
 
     # Tell CounterField not to set or save any values.
@@ -153,6 +160,8 @@ class ReviewRequest(BaseReviewRequestDetails):
         BaseComment.OPEN: 'issue_open_count',
         BaseComment.RESOLVED: 'issue_resolved_count',
         BaseComment.DROPPED: 'issue_dropped_count',
+        BaseComment.VERIFYING_RESOLVED: 'issue_verifying_count',
+        BaseComment.VERIFYING_DROPPED: 'issue_verifying_count',
     }
 
     summary = models.CharField(
@@ -257,6 +266,27 @@ class ReviewRequest(BaseReviewRequestDetails):
     issue_dropped_count = CounterField(
         _('dropped issue count'),
         initializer=_initialize_issue_counts)
+
+
+    issue_verifying_count = CounterField(
+        _('verifying issue count'),
+        initializer=_initialize_issue_counts)
+
+    screenshots_count = RelationCounterField(
+        'screenshots',
+        verbose_name=_('screenshots count'))
+
+    inactive_screenshots_count = RelationCounterField(
+        'inactive_screenshots',
+        verbose_name=_('inactive screenshots count'))
+
+    file_attachments_count = RelationCounterField(
+        'file_attachments',
+        verbose_name=_('file attachments count'))
+
+    inactive_file_attachments_count = RelationCounterField(
+        'inactive_file_attachments',
+        verbose_name=_('inactive file attachments count'))
 
     local_site = models.ForeignKey(LocalSite, blank=True, null=True,
                                    related_name='review_requests')
@@ -1156,6 +1186,9 @@ class ReviewRequest(BaseReviewRequestDetails):
         elif self.issue_open_count > 0:
             approved = False
             failure = 'The review request has open issues.'
+        elif self.issue_verifying_count > 0:
+            approved = False
+            failure = 'The review request has unverified issues.'
 
         for hook in ReviewRequestApprovalHook.hooks:
             try:

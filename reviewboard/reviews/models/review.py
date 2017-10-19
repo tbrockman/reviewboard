@@ -369,6 +369,8 @@ class Review(models.Model):
             # open.
             assert issue_counts[BaseComment.RESOLVED] == 0
             assert issue_counts[BaseComment.DROPPED] == 0
+            assert issue_counts[BaseComment.VERIFYING_RESOLVED] == 0
+            assert issue_counts[BaseComment.VERIFYING_DROPPED] == 0
 
             if self.ship_it:
                 ship_it_value = 1
@@ -382,6 +384,7 @@ class Review(models.Model):
                     'issue_open_count': issue_counts[BaseComment.OPEN],
                     'issue_dropped_count': 0,
                     'issue_resolved_count': 0,
+                    'issue_verifying_count': 0,
                     'shipit_count': ship_it_value,
                 })
 

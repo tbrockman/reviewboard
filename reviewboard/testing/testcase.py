@@ -285,10 +285,39 @@ class TestCase(FixturesCompilerMixin, DjbletsTestCase):
                                draft=False,
                                active=True,
                                **kwargs):
-        """Creates a FileAttachment for testing.
+        """Create a FileAttachment for testing.
 
-        The FileAttachment is tied to the given ReviewRequest. It's populated
-        with default data that can be overridden by the caller.
+        The attachment is tied to the given
+        :py:class:`~reviewboard.reviews.models.review_request.ReviewRequest`.
+        It's populated with default data that can be overridden by the caller.
+
+        Args:
+            review_request (reviewboard.reviews.models.review_request.
+                            ReviewRequest):
+                The review request that ultimately owns the file attachment.
+
+            orig_filename (unicode, optional):
+                The filename to use for the file attachment.
+
+            caption (unicode, optional):
+                The caption to use for the file attachment.
+
+            draft (bool or
+                   reviewboard.reviews.models.review_request_draft.
+                   ReviewRequestDraft):
+                A draft to associate the attachment with. This can also be
+                a boolean, for legacy reasons, which will attempt to look up
+                or create a draft for the review request.
+
+            active (bool):
+                Whether this attachment is considered active (not deleted).
+
+            **kwargs (dict):
+                Additional fields to set on the attachment.
+
+        Returns:
+            reviewboard.attachments.models.FileAttachment:
+            The resulting file attachment.
         """
         file_attachment = self._create_base_file_attachment(
             caption=caption,
@@ -296,7 +325,11 @@ class TestCase(FixturesCompilerMixin, DjbletsTestCase):
             **kwargs)
 
         if draft:
-            review_request_draft = ReviewRequestDraft.create(review_request)
+            if isinstance(draft, ReviewRequestDraft):
+                review_request_draft = draft
+            else:
+                review_request_draft = \
+                    ReviewRequestDraft.create(review_request)
 
             if active:
                 attachments = review_request_draft.file_attachments
@@ -505,6 +538,7 @@ class TestCase(FixturesCompilerMixin, DjbletsTestCase):
                               local_id=1001,
                               bugs_closed='', status='P', public=False,
                               publish=False, commit_id=None, changenum=None,
+                              time_added=None, last_updated=None,
                               repository=None, id=None,
                               create_repository=False):
         """Create a ReviewRequest for testing.
@@ -560,6 +594,21 @@ class TestCase(FixturesCompilerMixin, DjbletsTestCase):
 
         if publish:
             review_request.publish(review_request.submitter)
+
+        if time_added and last_updated:
+            ReviewRequest.objects.filter(pk=review_request.pk).update(
+                time_added=time_added,
+                last_updated=last_updated)
+            review_request.time_added = time_added
+            review_request.last_updated = last_updated
+        elif time_added:
+            ReviewRequest.objects.filter(pk=review_request.pk).update(
+                time_added=time_added)
+            review_request.time_added = time_added
+        elif last_updated:
+            ReviewRequest.objects.filter(pk=review_request.pk).update(
+                last_updated=last_updated)
+            review_request.last_updated = last_updated
 
         return review_request
 
@@ -706,22 +755,51 @@ class TestCase(FixturesCompilerMixin, DjbletsTestCase):
             user=user,
             body_top=body_top,
             base_reply_to=review,
-            timestamp=timestamp,
             **kwargs)
 
         if publish:
             reply.publish()
 
+        if timestamp:
+            Review.objects.filter(pk=reply.pk).update(timestamp=timestamp)
+            reply.timestamp = timestamp
+
         return reply
 
     def create_screenshot(self, review_request, caption='My caption',
-                          draft=False, active=True):
-        """Creates a Screenshot for testing.
+                          draft=False, active=True, **kwargs):
+        """Create a Screenshot for testing.
 
-        The Screenshot is tied to the given ReviewRequest. It's populated
-        with default data that can be overridden by the caller.
+        The screenshot is tied to the given
+        :py:class:`~reviewboard.reviews.models.review_request.ReviewRequest`.
+        It's populated with default data that can be overridden by the caller.
+
+        Args:
+            review_request (reviewboard.reviews.models.review_request.
+                            ReviewRequest):
+                The review request that ultimately owns the screenshot.
+
+            caption (unicode, optional):
+                The caption to use for the screenshot.
+
+            draft (bool or
+                   reviewboard.reviews.models.review_request_draft.
+                   ReviewRequestDraft):
+                A draft to associate the screenshot with. This can also be
+                a boolean, for legacy reasons, which will attempt to look up
+                or create a draft for the review request.
+
+            active (bool):
+                Whether this screenshot is considered active (not deleted).
+
+            **kwargs (dict):
+                Additional fields to set on the screenshot.
+
+        Returns:
+            reviewboard.reviews.models.screenshot.Screenshot:
+            The resulting screenshot.
         """
-        screenshot = Screenshot(caption=caption)
+        screenshot = Screenshot(caption=caption, **kwargs)
         filename = os.path.join(settings.STATIC_ROOT, 'rb', 'images',
                                 'logo.png')
 
@@ -729,7 +807,11 @@ class TestCase(FixturesCompilerMixin, DjbletsTestCase):
             screenshot.image.save(filename, File(f), save=True)
 
         if draft:
-            review_request_draft = ReviewRequestDraft.create(review_request)
+            if isinstance(draft, ReviewRequestDraft):
+                review_request_draft = draft
+            else:
+                review_request_draft = \
+                    ReviewRequestDraft.create(review_request)
 
             if active:
                 screenshots = review_request_draft.screenshots
@@ -950,8 +1032,8 @@ class TestCase(FixturesCompilerMixin, DjbletsTestCase):
     def create_status_update(self, review_request, user='dopey',
                              service_id='service', summary='Status Update',
                              state=StatusUpdate.PENDING,
-                             review=None,
-                             change_description=None):
+                             review=None, change_description=None,
+                             timestamp=None):
         """Create a status update for testing.
 
         It is populated with default data that can be overridden by the caller.
@@ -981,6 +1063,9 @@ class TestCase(FixturesCompilerMixin, DjbletsTestCase):
                                 ChangeDescription, optional):
                 The change description for this status update.
 
+            timestamp (datetime.datetime):
+                The timestamp for the status update.
+
         Returns:
             reviewboard.reviews.models.StatusUpdate:
             The new status update.
@@ -988,7 +1073,7 @@ class TestCase(FixturesCompilerMixin, DjbletsTestCase):
         if not isinstance(user, User):
             user = User.objects.get(username=user)
 
-        return StatusUpdate.objects.create(
+        status_update = StatusUpdate.objects.create(
             review_request=review_request,
             change_description=change_description,
             service_id=service_id,
@@ -996,6 +1081,13 @@ class TestCase(FixturesCompilerMixin, DjbletsTestCase):
             state=state,
             review=review,
             user=user)
+
+        if timestamp:
+            StatusUpdate.objects.filter(pk=status_update.pk).update(
+                timestamp=timestamp)
+            status_update.timestamp = timestamp
+
+        return status_update
 
     def create_webhook(self, enabled=False, events=WebHookTarget.ALL_EVENTS,
                        url='http://example.com',
