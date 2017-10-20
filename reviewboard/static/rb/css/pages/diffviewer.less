@@ -927,3 +927,29 @@
 }
 
 // vim: set et ts=2 sw=2:
+
+/****************************************************************************
+ * Top-down
+ ****************************************************************************/
+.topdown {
+  width: 100%;
+  background-color: #F0F0F0;
+  background-repeat: no-repeat;
+  background-image: linear-gradient(to bottom, #FFFFFF, #F0F0F0 50%, #F0F0F0);
+  thead tr {
+    display: flex;
+    padding: 0.5em;
+    flex-direction: row;
+    th {
+      display: inline-block;
+    }
+    th:last-child{
+      flex: 0 0 1em;
+      margin: auto 0 auto auto;
+    }
+    .filename-column {
+      text-align: left;
+    }
+  }
+
+}

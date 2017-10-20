@@ -322,7 +322,6 @@ class DiffFragmentView(View):
 
         try:
             context = self.get_context_data(**kwargs)
-            context['view'] = self.request.GET.get('view', 'side-by-side')
 
             renderer = self.create_renderer(
                 context=context,
@@ -523,10 +522,16 @@ class DiffFragmentView(View):
         may raise a UserVisibleError (best case), or some other form of
         Exception.
         """
+        view = self.request.GET.get('view', 'side-by-side')
+        if (view == 'side-by-side'):
+            template = self.template_name
+        else:
+            template = 'diffviewer/diff_file_fragment_mobile.html'
+
         return get_diff_renderer(
             diff_file,
             extra_context=context,
-            template_name=self.template_name,
+            template_name=template,
             **renderer_settings)
 
     def get_context_data(self, *args, **kwargs):
@@ -677,6 +682,7 @@ class DownloadPatchErrorBundleView(DiffFragmentView):
                 context=context,
                 renderer_settings=renderer_settings,
                 *args, **kwargs)
+            print context    
             renderer.render_to_response(request)
         except PatchError as e:
             patch_error = e

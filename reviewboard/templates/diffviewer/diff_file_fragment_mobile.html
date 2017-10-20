@@ -1,0 +1,66 @@
+{% load difftags i18n djblets_deco djblets_utils reviewtags static %}
+
+<table id="file{{file.filediff.id}}" class="{% spaceless %}
+  topdown
+  {% if file.is_new_file %}newfile{% endif %}
+  {% if file.binary %}diff-binary{% endif %}
+  {% if file.deleted %}diff-deleted{% endif %}
+  {% endspaceless %}"
+       data-lines-equal="{{equal_lines}}">
+ <thead>
+  <tr class="filename-row">
+ {%  if file.dest_filename == file.depot_filename %}
+   <th class="filename-column">
+    <a name="{{file.index}}" class="file-anchor"></a>
+ {%   if file.binary %}
+ {%    if modified_diff_file_attachment %}
+    <img class="header-file-icon" src="{{modified_diff_file_attachment.icon_url}}" />
+ {%    elif orig_diff_file_attachment %}
+    <img class="header-file-icon" src="{{orig_diff_file_attachment.icon_url}}" />
+ {%    endif %}
+ {%   endif %}
+    {{file.depot_filename}}
+  </th>
+  <th>
+   <a class="rb-icon rb-icon-download download-link" href="{{download_modified_url}}" alt="{% trans 'Download' %}" title="{% trans 'Download' %}"></a>
+  </th>
+ {%  else %}
+ {%   if not file.is_new_file %}
+   <th><a name="{{file.index}}" class="file-anchor"></a>{{ file.depot_filename }}</th>
+ {%   endif %}
+   <th>
+ {%   if file.is_new_file %}
+    <a name="{{file.index}}" class="file-anchor"></a>
+ {%   endif %}
+    {{file.dest_filename}}{% if file.moved %}{% trans " (moved)" %}{% elif file.copied %}{% trans " (copied)" %}{% endif %}</th>
+ {%  endif %}{# file.dest_filename == file.depot_filename #}
+  </tr>
+
+  <!-- <tr class="revision-row">
+  {%  if file.moved_or_copied and file.num_changes == 0 %}
+   <th colspan="4"></th>
+  {%  else %}
+  {%   if not file.is_new_file %}
+   <th></th>
+   <th class="revision-col">
+  {%    if download_orig_url %}
+    <a class="rb-icon rb-icon-download download-link" href="{{download_orig_url}}" alt="{% trans 'Download' %}" title="{% trans 'Download' %}"></a>
+  {%    endif %}
+    {{file.revision}}
+    </th>
+  {%   endif %}
+   <th></th>
+  {%   if not file.deleted %}
+   <th class="revision-col">
+  {%    if download_modified_url %}
+    <a class="rb-icon rb-icon-download download-link" href="{{download_modified_url}}" alt="{% trans 'Download' %}" title="{% trans 'Download' %}"></a>
+  {%    endif %}
+    {{file.dest_revision}}
+   </th>
+  {%   else %}
+   <th></th>
+  {%   endif %}
+  {%  endif %}{# num_changes and moved #}
+  </tr> -->
+ </thead>
+</table>

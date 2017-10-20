@@ -91,6 +91,7 @@ RB.DiffViewerPageView = RB.ReviewablePageView.extend({
 
         this.listenTo(this.model.diffReviewables, 'populating', () => {
             this._diffReviewableViews.forEach(view => view.remove());
+            console.log("here??");
             this._$diffs.children('.diff-container').remove();
             this._highlightedChunk = null;
 
@@ -358,7 +359,7 @@ RB.DiffViewerPageView = RB.ReviewablePageView.extend({
                             return;
                         }
 
-                        $container.hide();
+                        //$container.hide();
 
                         /*
                          * jQuery's html() and replaceWith() perform checks of
@@ -371,6 +372,7 @@ RB.DiffViewerPageView = RB.ReviewablePageView.extend({
                          * unnecessary. It's much faster to just set innerHTML
                          * directly.
                          */
+                        console.log('here???');
                         $container[0].innerHTML = xhr.responseText;
                         this._renderFileDiff(diffReviewable);
                     }
@@ -410,7 +412,7 @@ RB.DiffViewerPageView = RB.ReviewablePageView.extend({
             el: $el,
             model: diffReviewable,
         });
-
+        console.log(diffReviewableView);
         this._diffFileIndexView.addDiff(this._diffReviewableViews.length,
                                         diffReviewableView);
 
