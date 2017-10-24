@@ -183,7 +183,7 @@ def diff_chunk_header(context, header):
 
 @register.simple_tag
 def diff_lines(index, chunk, standalone, line_fmt, anchor_fmt='',
-               begin_collapse_fmt='', end_collapse_fmt='', moved_fmt=''):
+               begin_collapse_fmt='', end_collapse_fmt='', moved_fmt='', is_mobile=False):
     """Renders the lines of a diff.
 
     This will render each line in the diff viewer. The function expects
@@ -211,7 +211,6 @@ def diff_lines(index, chunk, standalone, line_fmt, anchor_fmt='',
         is_insert = True
     elif change == 'delete':
         is_delete = True
-
     result = []
 
     for i, line in enumerate(lines):
@@ -335,6 +334,9 @@ def diff_lines(index, chunk, standalone, line_fmt, anchor_fmt='',
             'moved_from': moved_from,
             'moved_to': moved_to,
         }
+
+        if (is_delete and is_mobile):
+            context['line2'] = context['line1']
 
         if anchor:
             anchor_html = anchor_fmt % {

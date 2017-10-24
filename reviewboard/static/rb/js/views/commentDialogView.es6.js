@@ -501,7 +501,7 @@ RB.CommentDialogView = Backbone.View.extend({
         if (showComments) {
             width += this.COMMENTS_BOX_WIDTH;
         }
-
+        console.log('here and resizing??');
         this.$el
             .width(width)
             .height(this.model.get('canEdit')

@@ -98,8 +98,6 @@ class DiffRenderer(object):
                     _('Invalid chunk index %s specified.')
                     % self.chunk_index)
 
-        print "this is where the render is"
-
         return render_to_string(self.template_name,
                                 Context(self.make_context()))
 

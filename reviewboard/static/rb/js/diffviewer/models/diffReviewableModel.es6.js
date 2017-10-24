@@ -78,6 +78,10 @@ RB.DiffReviewable = RB.AbstractReviewable.extend({
             url += '&show-deleted=1';
         }
 
+        if (window.innerWidth <= 720) {
+            url += '&view=top-down';
+        }
+
         url += '&' + TEMPLATE_SERIAL;
 
         this._fetchFragment({
@@ -114,7 +118,8 @@ RB.DiffReviewable = RB.AbstractReviewable.extend({
             url: `${this._buildRenderedDiffURL()}chunk/${options.chunkIndex}/`,
             data: {
                 'index': this.get('file').get('index'),
-                'lines-of-context': options.linesOfContext
+                'lines-of-context': options.linesOfContext,
+                'view': window.innerWidth <= 720 ? 'top-down' : 'side-by-side',
             }
         }, callbacks, context);
     },

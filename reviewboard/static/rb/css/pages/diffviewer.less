@@ -932,24 +932,54 @@
  * Top-down
  ****************************************************************************/
 .topdown {
+  .sidebyside;
+  display: inline-block;
   width: 100%;
-  background-color: #F0F0F0;
-  background-repeat: no-repeat;
-  background-image: linear-gradient(to bottom, #FFFFFF, #F0F0F0 50%, #F0F0F0);
-  thead tr {
-    display: flex;
-    padding: 0.5em;
-    flex-direction: row;
-    th {
-      display: inline-block;
-    }
-    th:last-child{
-      flex: 0 0 1em;
-      margin: auto 0 auto auto;
-    }
-    .filename-column {
-      text-align: left;
+  thead {
+    display: inline-block;
+    border-bottom: 1px #cacaca solid;
+    background-color: #F0F0F0;
+    width: 100%;
+    tr {
+      display: flex;
+      flex-direction: row;
+      th {
+        background: none;
+        text-overflow: unset;
+        padding: 1em;
+      }
+      th:last-child{
+        flex: 0 0 1em;
+        margin: auto 0 auto auto;
+      }
+      .filename-column {
+        flex: 1;
+      }
     }
   }
-
+  tbody {
+    width: 100%;
+    display: inline-block;
+    tr {
+      td {
+        width: 100%;
+      }
+      th {
+        padding-left: 0;
+      }
+    }
+  }
+  .moved-row {
+    th {
+      padding-right: 4px;
+    }
+  }
+  .filename-row {
+    th {
+      background: none !important;
+    }
+  }
+  .hide-unless-replaced {
+    display: none;
+  }
 }

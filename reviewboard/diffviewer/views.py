@@ -327,7 +327,6 @@ class DiffFragmentView(View):
                 context=context,
                 renderer_settings=renderer_settings,
                 *args, **kwargs)
-
             response = renderer.render_to_response(request)
         except PatchError as e:
             logging.warning(
@@ -682,7 +681,6 @@ class DownloadPatchErrorBundleView(DiffFragmentView):
                 context=context,
                 renderer_settings=renderer_settings,
                 *args, **kwargs)
-            print context    
             renderer.render_to_response(request)
         except PatchError as e:
             patch_error = e
