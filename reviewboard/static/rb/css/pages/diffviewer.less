@@ -532,6 +532,9 @@
         }
       }
     }
+    .replace-section-indicator {
+      position: absolute;
+    }
   }
 
   thead {
@@ -598,6 +601,10 @@
   margin-top: -0.3em;
   position: absolute;
   width: 1.6em;
+
+  .on-mobile-medium-screen-720({
+    left: 0;
+  });
 
   .commentflag-shadow {
     border-radius: @comment-flag-border-radius;
@@ -690,6 +697,10 @@
     &:last-child {
       margin-bottom: 0;
     }
+
+    .on-mobile-medium-screen-720({
+      margin-bottom: 2em;
+    })
   }
 
   .diff-box {
@@ -697,6 +708,11 @@
     border-radius: @box-border-radius;
     box-shadow: @box-shadow;
     overflow: hidden;
+    .on-mobile-medium-screen-720({
+      border-right: none;
+      border-left: none;
+      border-radius: 0px;
+    });
   }
 
   .diff-highlight {

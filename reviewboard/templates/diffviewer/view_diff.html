@@ -41,7 +41,6 @@
     <div id="diff_revision_selector"></div>
     <div id="diff_comments_hint"></div>
     <div id="diff_index"><span class="fa fa-spinner fa-pulse"></span></div>
-    <div id="pagination1"></div>
    </div>
    <div class="show-mobile" id="diff_statistics">
     <div class="diff-stat-text toggle-show-anchors">
@@ -80,7 +79,10 @@
  </div>
 </div>
 
+<div id="pagination1"></div>
+<div><i class="fa fa-cogs" aria-hidden="true"></i></div>
 <div id="view_controls">
+
 {%    if collapseall %}
  <div><a href=".?expand=1"><span class="fa fa-plus"></span> {% trans "Expand changes" %}</a></div>
 {%    else %}
