@@ -364,7 +364,7 @@ def diff_lines(index, chunk, standalone, line_fmt, anchor_fmt='',
 
 @register.simple_tag
 def diff_lines_mobile(index, chunk, standalone, mobile_line_fmt, anchor_fmt='',
-                      begin_collapsm_fmt='', end_collpase_fmt='', moved_fmt=''):
+                      begin_collapse_fmt='', end_collapse_fmt='', moved_fmt=''):
     """Renders the lines of a diff.
 
     This will render each line in the diff viewer. The function expects

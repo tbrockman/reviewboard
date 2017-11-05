@@ -80,20 +80,63 @@
 </div>
 
 <div id="pagination1"></div>
-<div><i class="fa fa-cogs" aria-hidden="true"></i></div>
 <div id="view_controls">
-
-{%    if collapseall %}
- <div><a href=".?expand=1"><span class="fa fa-plus"></span> {% trans "Expand changes" %}</a></div>
-{%    else %}
- <div><a href=".?collapse=1"><span class="fa fa-minus"></span> {% trans "Collapse changes" %}</a></div>
-{%    endif %}
-{%    if siteconfig_settings.diffviewer_show_trailing_whitespace %}
- <div class="ew" style="display:none;"><a href="#" class="toggle-show-whitespace"><span class="fa fa-minus"></span> {% trans "Hide extra whitespace" %}</a></div>
- <div class="ew"><a href="#" class="toggle-show-whitespace"><span class="fa fa-plus"></span> {% trans "Show extra whitespace" %}</a></div>
-{%    endif %}
- <div class="ws"><a href="#" class="toggle-whitespace-only-chunks"><span class="fa fa-minus"></span> {% trans "Hide whitespace changes" %}</a></div>
- <div  class="ws" style="display:none;"><a href="#" class="toggle-whitespace-only-chunks"><span class="fa fa-plus"></span> {% trans "Show whitespace changes" %}</a></div>
+ <div class="mobile-controls">
+  {%    if collapseall %}
+   <div class="toggle">
+    <a href=".?expand=1">
+     <span class="fa fa-expand"></span>
+     <span>{% trans "Expand lines" %}</span>
+    </a>
+   </div>
+  {%    else %}
+   <div class="untoggle">
+    <a href=".?collapse=1">
+     <span class="fa fa-compress"></span>
+     <span>{% trans "Collapse lines" %}</span>
+   </a>
+  </div>
+  {%    endif %}
+  {%    if siteconfig_settings.diffviewer_show_trailing_whitespace %}
+   <div class="ew untoggle" style="display:none;">
+    <a href="#" class="toggle-show-whitespace">
+     <span class="fa fa-minus"></span>
+     <span>{% trans "Trailing whitespace" %}</span>
+    </a>
+   </div>
+   <div class="ew toggle">
+    <a href="#" class="toggle-show-whitespace">
+     <span class="fa fa-plus"></span>
+     <span>{% trans "Trailing whitespace" %}</span>
+    </a>
+   </div>
+  {%    endif %}
+   <div class="ws untoggle">
+    <a href="#" class="toggle-whitespace-only-chunks">
+     <span class="fa fa-eye-slash"></span>
+     <span>{% trans "Whitespace changes" %}</span>
+     </a>
+    </div>
+   <div  class="ws toggle" style="display:none;">
+    <a href="#" class="toggle-whitespace-only-chunks">
+     <span class="fa fa-eye"></span>
+     <span>{% trans "Whitespace changes" %}</span>
+     </a>
+    </div>
+ </div>
+ <div class="desktop-controls">
+  {%    if collapseall %}
+   <div><a href=".?expand=1"><span class="fa fa-plus"></span> {% trans "Expand changes" %}</a></div>
+  {%    else %}
+   <div><a href=".?collapse=1"><span class="fa fa-minus"></span> {% trans "Collapse changes" %}</a></div>
+  {%    endif %}
+  {%    if siteconfig_settings.diffviewer_show_trailing_whitespace %}
+   <div class="ew" style="display:none;"><a href="#" class="toggle-show-whitespace"><span class="fa fa-minus"></span> {% trans "Hide extra whitespace" %}</a></div>
+   <div class="ew"><a href="#" class="toggle-show-whitespace"><span class="fa fa-plus"></span> {% trans "Show extra whitespace" %}</a></div>
+  {%    endif %}
+   <div class="ws"><a href="#" class="toggle-whitespace-only-chunks"><span class="fa fa-minus"></span> {% trans "Hide whitespace changes" %}</a></div>
+   <div  class="ws" style="display:none;"><a href="#" class="toggle-whitespace-only-chunks"><span class="fa fa-plus"></span> {% trans "Show whitespace changes" %}</a></div>
+ </div>
 </div>
 
 <div id="diffs"></div>

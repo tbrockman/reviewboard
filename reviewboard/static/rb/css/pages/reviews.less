@@ -5,6 +5,8 @@
 
 @img_base: '../../images';
 @djblets_img_base: '../../../djblets/images';
+@line-added-green: #caf2c1;
+@line-removed-red: #f5d0d6;
 
 @changedesc-bg: lighten(@review-request-bg, 5%);
 
@@ -831,30 +833,79 @@
 
   display: flex;
   margin: 2em 0;
+  justify-content: center;
 
-  a {
-    background: #E0E0E0;
-    border: 1px #C3C3C3 solid;
-    border-radius: @box-border-radius;
-    color: black;
-    display: inline-block;
-    padding: 0.6em 1em;
-    text-decoration: none;
+  .desktop-controls {
+    a {
+      background: #E0E0E0;
+      border: 1px #C3C3C3 solid;
+      border-radius: @box-border-radius;
+      color: black;
+      display: inline-block;
+      padding: 0.6em 1em;
+      text-decoration: none;
 
-    &:hover {
-      background: #ECECEC;
+      &:hover {
+        background: #ECECEC;
+      }
     }
+
+    div {
+      display: inline-block;
+      margin: 1em;
+      padding: 0;
+    }
+
+    .rb-icon {
+      vertical-align: top;
+    }
+
+    .on-mobile-medium-screen-720({
+      display: none;
+    });
   }
 
-  div {
-    display: inline-block;
-    margin: 1em;
-    padding: 0;
+  .mobile-controls {
+    display: none;
+    width: 100%;
+    justify-content: space-evenly;
+
+    a {
+      padding: 0.25em 0.5em;
+      display: flex;
+      align-content: center;
+      justify-content: space-between;
+      text-decoration: none;
+      color: #000;
+
+      span {
+        padding: 0.25em 0.5em;
+        align-self: center;
+      }
+    }
+
+    &>div {
+      border: 1px solid #a0a0a0;
+      border-bottom: none;
+      margin: 0 0.5em;
+    }
+
+    .toggle {
+      background-color: @line-added-green;
+    }
+
+    .untoggle {
+      background-color: @line-removed-red;
+    }
+
+    .on-mobile-medium-screen-720({
+      display: flex;
+    });
   }
 
-  .rb-icon {
-    vertical-align: top;
-  }
+  .on-mobile-medium-screen-720({
+    margin-bottom: 0;
+  });
 }
 
 .sidebyside.loading {
@@ -2144,6 +2195,9 @@
 
     .on-mobile-medium-screen-720({
       text-align: center;
+      background-color: #ede1b2;
+      border-color: #a88d32;
+      padding-top: 0;
 
       h1 {
         display: block !important;
