@@ -290,7 +290,7 @@ suite('rb/views/ReviewDialogView', function() {
                         expect(dlg._bodyBottomView.$el.is(':visible'))
                             .toBe(true);
                         expect(dlg._$shipIt.prop('checked')).toBe(shipIt);
-                        expect(dlg._$comments.children().length).toBe(2);
+                        expect(dlg.$('.review-comments .draft').length).toBe(2);
                         expect(dlg._$spinner).toBe(null);
                     }
 
@@ -332,7 +332,7 @@ suite('rb/views/ReviewDialogView', function() {
                         });
 
                         $button = dlg._$buttons.find(
-                            'input[value="Add Comment"]');
+                            'input[value="Add General Comment"]');
                         expect($button.length).toBe(0);
 
                         expect($.ajax).toHaveBeenCalled();
@@ -358,7 +358,7 @@ suite('rb/views/ReviewDialogView', function() {
                             });
 
                             $button = dlg._$buttons.find(
-                                'input[value="Add Comment"]');
+                                'input[value="Add General Comment"]');
                             expect($button.length).toBe(1);
 
                             expect($.ajax).toHaveBeenCalled();
@@ -756,9 +756,8 @@ suite('rb/views/ReviewDialogView', function() {
                 spyOn(comment, 'save');
 
                 /* Set some new state for the comment. */
-                commentView.$editor
-                    .inlineEditor('startEdit')
-                    .inlineEditor('setValue', newCommentText);
+                commentView.inlineEditorView.startEdit();
+                commentView.inlineEditorView.setValue(newCommentText);
                 commentView.textEditor.setRichText(richText);
                 commentView.save();
 
@@ -783,9 +782,8 @@ suite('rb/views/ReviewDialogView', function() {
                 spyOn(comment, 'save');
 
                 /* Set some new state for the comment. */
-                commentView.$editor
-                    .inlineEditor('startEdit')
-                    .inlineEditor('setValue', newCommentText);
+                commentView.inlineEditorView.startEdit();
+                commentView.inlineEditorView.setValue(newCommentText);
                 commentView.textEditor.setRichText(true);
                 commentView.save();
 

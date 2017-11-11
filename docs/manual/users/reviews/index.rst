@@ -5,8 +5,9 @@ Reviewing
 .. toctree::
    :maxdepth: 2
 
-   issue-tracking
+   reviews
    draft-banner
+   issue-tracking
    reviewing-diffs
    reviewing-files
    reviewing-images
@@ -16,3 +17,4 @@ Reviewing
    publishing
    approving-changes
    replying
+   automated-review/index

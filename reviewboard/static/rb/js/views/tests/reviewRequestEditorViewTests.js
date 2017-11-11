@@ -57,6 +57,10 @@ suite('rb/views/ReviewRequestEditorView', function() {
             '          data-field-id="text"',
             '          class="field field-text-area editable"',
             '          data-allow-markdown="True"></pre>',
+            '     <input id="field_checkbox"',
+            '            data-field-id="checkbox"',
+            '            class="field"',
+            '            type="checkbox">',
             '    </div>',
             '   </div>',
             '  </div>',
@@ -104,6 +108,97 @@ suite('rb/views/ReviewRequestEditorView', function() {
             el: $el,
             model: editor
         });
+
+        view.addFieldView(
+            new RB.ReviewRequestFields.SummaryFieldView({
+                el: $el.find('#field_summary'),
+                fieldID: 'summary',
+                model: editor
+            }));
+
+        view.addFieldView(
+            new RB.ReviewRequestFields.BranchFieldView({
+                el: $el.find('#field_branch'),
+                fieldID: 'branch',
+                model: editor
+            }));
+
+        view.addFieldView(
+            new RB.ReviewRequestFields.OwnerFieldView({
+                el: $el.find('#field_submitter'),
+                fieldID: 'submitter',
+                model: editor
+            }));
+
+        view.addFieldView(
+            new RB.ReviewRequestFields.BugsFieldView({
+                el: $el.find('#field_bugs_closed'),
+                fieldID: 'bugs_closed',
+                model: editor
+            }));
+
+        view.addFieldView(
+            new RB.ReviewRequestFields.DependsOnFieldView({
+                el: $el.find('#field_depends_on'),
+                fieldID: 'depends_on',
+                model: editor
+            }));
+
+        view.addFieldView(
+            new RB.ReviewRequestFields.TargetGroupsFieldView({
+                el: $el.find('#field_target_groups'),
+                fieldID: 'target_groups',
+                model: editor
+            }));
+
+        view.addFieldView(
+            new RB.ReviewRequestFields.TargetPeopleFieldView({
+                el: $el.find('#field_target_people'),
+                fieldID: 'target_people',
+                model: editor
+            }));
+
+        view.addFieldView(
+            new RB.ReviewRequestFields.DescriptionFieldView({
+                el: $el.find('#field_description'),
+                fieldID: 'description',
+                model: editor
+            }));
+
+        view.addFieldView(
+            new RB.ReviewRequestFields.TestingDoneFieldView({
+                el: $el.find('#field_testing_done'),
+                fieldID: 'testing_done',
+                model: editor
+            }));
+
+        view.addFieldView(
+            new RB.ReviewRequestFields.TextFieldView({
+                el: $el.find('#field_my_custom'),
+                fieldID: 'my_custom',
+                model: editor
+            }));
+
+        view.addFieldView(
+            new RB.ReviewRequestFields.MultilineTextFieldView({
+                el: $el.find('#field_my_rich_text_custom'),
+                fieldID: 'my_rich_text_custom',
+                model: editor
+            }));
+
+        view.addFieldView(
+            new RB.ReviewRequestFields.MultilineTextFieldView({
+                el: $el.find('#field_text'),
+                fieldID: 'text',
+                model: editor
+            }));
+
+        view.addFieldView(
+            new RB.ReviewRequestFields.CheckboxFieldView({
+                el: $el.find('#field_checkbox'),
+                fieldID: 'checkbox',
+                model: editor
+            }));
 
         $filesContainer = $testsScratch.find('#file-list');
         $screenshotsContainer = $testsScratch.find('#screenshot-thumbnails');
@@ -194,7 +289,8 @@ suite('rb/views/ReviewRequestEditorView', function() {
                 });
 
                 it('Show when saved', function() {
-                    var $summary = view.$el.find('#field_summary');
+                    var summaryField = view.getFieldView('summary'),
+                        summaryEditor = summaryField.inlineEditorView;
 
                     expect(view.banner).toBe(null);
 
@@ -207,10 +303,9 @@ suite('rb/views/ReviewRequestEditorView', function() {
                             options.success.call(context);
                         });
 
-                    $summary
-                        .inlineEditor('startEdit')
-                        .inlineEditor('setValue', 'New summary')
-                        .inlineEditor('save');
+                    summaryEditor.startEdit();
+                    summaryEditor.setValue('New summary');
+                    summaryEditor.save();
 
                     expect(view.banner).not.toBe(null);
                     expect(view.banner.$el.is(':visible')).toBe(true);
@@ -403,6 +498,56 @@ suite('rb/views/ReviewRequestEditorView', function() {
                     expect(reviewRequest.reopen).toHaveBeenCalled();
                 });
             });
+
+            describe('Close description', function() {
+                var fieldEditor,
+                    $input;
+
+                beforeEach(function() {
+                    view.showBanner();
+                    fieldEditor = view.banner.field.inlineEditorView;
+                    $input = fieldEditor.$field;
+                });
+
+                function testCloseDescription(testName, richText) {
+                    it(testName, function(done) {
+                        var textEditor,
+                            t;
+
+                        fieldEditor.startEdit();
+                        textEditor = fieldEditor.textEditor;
+                        textEditor.setText('My description');
+                        textEditor.setRichText(richText);
+
+                        $input.triggerHandler('keyup');
+
+                        t = setInterval(function() {
+                            if (fieldEditor.isDirty()) {
+                                clearInterval(t);
+
+                                spyOn(reviewRequest, 'close')
+                                    .and.callFake(function(options) {
+                                        expect(options.type)
+                                            .toBe(RB.ReviewRequest.CLOSE_DISCARDED);
+                                        expect(options.description)
+                                            .toBe('My description');
+                                        expect(options.richText).toBe(richText);
+                                    });
+
+                                fieldEditor.submit();
+                                expect(reviewRequest.close).toHaveBeenCalled();
+
+                                done();
+                            }
+                        }, 100);
+                    });
+                }
+
+                describe('Saves', function() {
+                    testCloseDescription('For Markdown', true);
+                    testCloseDescription('For plain text', false);
+                });
+            });
         });
 
         describe('Submitted banner', function() {
@@ -435,6 +580,56 @@ suite('rb/views/ReviewRequestEditorView', function() {
                     expect(reviewRequest.reopen).toHaveBeenCalled();
                 });
             });
+
+            describe('Close description', function() {
+                var fieldEditor,
+                    $input;
+
+                beforeEach(function() {
+                    view.showBanner();
+                    fieldEditor = view.banner.field.inlineEditorView;
+                    $input = fieldEditor.$field;
+                });
+
+                function testCloseDescription(testName, richText) {
+                    it(testName, function(done) {
+                        var textEditor,
+                            t;
+
+                        fieldEditor.startEdit();
+                        textEditor = fieldEditor.textEditor;
+                        textEditor.setText('My description');
+                        textEditor.setRichText(richText);
+
+                        $input.triggerHandler('keyup');
+
+                        t = setInterval(function() {
+                            if (fieldEditor.isDirty()) {
+                                clearInterval(t);
+
+                                spyOn(reviewRequest, 'close')
+                                    .and.callFake(function(options) {
+                                        expect(options.type)
+                                            .toBe(RB.ReviewRequest.CLOSE_SUBMITTED);
+                                        expect(options.description)
+                                            .toBe('My description');
+                                        expect(options.richText).toBe(richText);
+                                    });
+
+                                fieldEditor.submit();
+                                expect(reviewRequest.close).toHaveBeenCalled();
+
+                                done();
+                            }
+                        }, 100);
+                    });
+                }
+
+                describe('Saves', function() {
+                    testCloseDescription('For Markdown', true);
+                    testCloseDescription('For plain text', false);
+                });
+            });
         });
     });
 
@@ -445,6 +640,7 @@ suite('rb/views/ReviewRequestEditorView', function() {
             jsonTextTypeFieldName,
             supportsRichText,
             useExtraData,
+            fieldView,
             $field,
             $input;
 
@@ -470,8 +666,10 @@ suite('rb/views/ReviewRequestEditorView', function() {
                                          : jsonFieldName + '_text_type');
                 supportsRichText = !!options.supportsRichText;
                 useExtraData = options.useExtraData;
+                fieldView = view.getFieldView(options.fieldID || options.jsonFieldName);
+                fieldEditor = fieldView.inlineEditorView;
                 $field = view.$(options.selector);
-                $input = $field.inlineEditor('field');
+                $input = fieldEditor.$field;
             });
         }
 
@@ -483,7 +681,7 @@ suite('rb/views/ReviewRequestEditorView', function() {
 
         function hasEditorTest() {
             it('Has editor', function() {
-                expect($field.data('inlineEditor')).not.toBe(undefined);
+                expect(fieldEditor).not.toBe(undefined);
             });
         }
 
@@ -494,12 +692,12 @@ suite('rb/views/ReviewRequestEditorView', function() {
 
                 expect(supportsRichText).toBe(supportsRichTextEV);
 
-                $field.inlineEditor('startEdit');
+                fieldEditor.startEdit();
 
                 if (supportsRichText) {
                     expect($field.hasClass('field-text-area')).toBe(true);
 
-                    textEditor = $input.data('text-editor');
+                    textEditor = fieldEditor.textEditor;
                     textEditor.setText('My Value');
                     textEditor.setRichText(richText);
                 } else {
@@ -507,10 +705,10 @@ suite('rb/views/ReviewRequestEditorView', function() {
                 }
 
                 $input.triggerHandler('keyup');
-                expect($field.inlineEditor('value')).toBe('My Value');
+                expect(fieldEditor.getValue()).toBe('My Value');
 
                 t = setInterval(function() {
-                    if ($field.inlineEditor('dirty')) {
+                    if (fieldEditor.isDirty()) {
                         clearInterval(t);
                         done();
                     }
@@ -531,8 +729,8 @@ suite('rb/views/ReviewRequestEditorView', function() {
                     expectedData.include_text_types = 'raw';
                 }
 
-                expect($field.inlineEditor('dirty')).toBe(true);
-                $field.inlineEditor('submit');
+                expect(fieldEditor.isDirty()).toBe(true);
+                fieldEditor.submit();
 
                 expect(reviewRequest.draft.save).toHaveBeenCalled();
                 expect(reviewRequest.draft.save.calls.argsFor(0)[0].data)
@@ -562,22 +760,22 @@ suite('rb/views/ReviewRequestEditorView', function() {
             describe('Edit counts', function() {
                 it('When opened', function() {
                     expect(editor.get('editCount')).toBe(0);
-                    $field.inlineEditor('startEdit');
+                    fieldEditor.startEdit();
                     expect(editor.get('editCount')).toBe(1);
                 });
 
                 it('When canceled', function() {
-                    $field.inlineEditor('startEdit');
-                    $field.inlineEditor('cancel');
+                    fieldEditor.startEdit();
+                    fieldEditor.cancel();
                     expect(editor.get('editCount')).toBe(0);
                 });
 
                 it('When submitted', function() {
-                    $field.inlineEditor('startEdit');
+                    fieldEditor.startEdit();
                     $input
                         .val('My Value')
                         .triggerHandler('keyup');
-                    $field.inlineEditor('submit');
+                    fieldEditor.submit();
 
                     expect(editor.get('editCount')).toBe(0);
                 });
@@ -727,8 +925,8 @@ suite('rb/views/ReviewRequestEditorView', function() {
 
                 setupFieldTests({
                     fieldName: 'closeDescription',
-                    jsonFieldName: 'changedescription',
-                    selector: options.bannerSel + ' #field_changedescription'
+                    jsonFieldName: 'close_description',
+                    selector: options.bannerSel + ' #field_close_description'
                 });
 
                 hasEditorTest();
@@ -749,9 +947,9 @@ suite('rb/views/ReviewRequestEditorView', function() {
                         expectedData[options.jsonTextTypeFieldName] = textType;
                         expectedData[options.jsonFieldName] = 'My Value';
 
-                        $field.inlineEditor('startEdit');
+                        fieldEditor.startEdit();
 
-                        textEditor = $input.data('text-editor');
+                        textEditor = fieldEditor.textEditor;
                         textEditor.setText('My Value');
 
                         if (setRichText !== false) {
@@ -759,7 +957,7 @@ suite('rb/views/ReviewRequestEditorView', function() {
                         }
 
                         $input.triggerHandler('keyup');
-                        $field.inlineEditor('submit');
+                        fieldEditor.submit();
 
                         expect(reviewRequest.close).toHaveBeenCalled();
                         expect(reviewRequest.save).toHaveBeenCalled();
@@ -779,12 +977,12 @@ suite('rb/views/ReviewRequestEditorView', function() {
                 describe('State when statusEditable', function() {
                     it('Disabled when false', function() {
                         editor.set('statusEditable', false);
-                        expect($field.inlineEditor('option', 'enabled')).toBe(false);
+                        expect(fieldEditor.options.enabled).toBe(false);
                     });
 
                     it('Enabled when true', function() {
                         editor.set('statusEditable', true);
-                        expect($field.inlineEditor('option', 'enabled')).toBe(true);
+                        expect(fieldEditor.options.enabled).toBe(true);
                     });
                 });
 
@@ -824,9 +1022,10 @@ suite('rb/views/ReviewRequestEditorView', function() {
 
                 setupFieldTests({
                     supportsRichText: true,
-                    fieldName: 'closeDescription',
+                    fieldID: 'change_description',
+                    fieldName: 'changeDescription',
                     jsonFieldName: 'changedescription',
-                    selector: '#draft-banner #field_changedescription'
+                    selector: '#draft-banner #field_change_description'
                 });
 
                 hasEditorTest();
@@ -985,7 +1184,7 @@ suite('rb/views/ReviewRequestEditorView', function() {
             });
         });
 
-        describe('Submitter', function() {
+        describe('Owner', function() {
             setupFieldTests({
                 jsonFieldName: 'submitter',
                 selector: '#field_submitter'
@@ -1051,7 +1250,7 @@ suite('rb/views/ReviewRequestEditorView', function() {
             });
 
             it('Initial rich text state', function() {
-                expect($input.data('text-editor').richText).toBe(true)
+                expect(fieldEditor.textEditor.richText).toBe(true);
             });
 
             hasEditorTest();
@@ -1081,6 +1280,31 @@ suite('rb/views/ReviewRequestEditorView', function() {
             richTextSavingTest();
             editCountTests();
             securityTests();
+        });
+
+        describe('Custom checkbox field', function() {
+            beforeEach(function() {
+                $field = view.$('#field_checkbox');
+
+                saveSpyFunc = function(options, context) {
+                    expect(options.data['extra_data.checkbox'])
+                        .toBe(true);
+                    options.success.call(context);
+                };
+                reviewRequest.draft.save.and.callFake(saveSpyFunc);
+            });
+
+            it('Saves', function() {
+                var expectedData = {
+                    'extra_data.checkbox': true
+                };
+
+                $field.click();
+
+                expect(reviewRequest.draft.save).toHaveBeenCalled();
+                expect(reviewRequest.draft.save.calls.argsFor(0)[0].data)
+                    .toEqual(expectedData);
+            });
         });
     });
 
@@ -1154,6 +1378,18 @@ suite('rb/views/ReviewRequestEditorView', function() {
                         expect(editor.get('editCount')).toBe(0);
                     });
                 });
+            });
+        });
+    });
+
+    describe('Methods', function() {
+        describe('getFieldView', function() {
+            it('Correct field is returned', function() {
+                var fieldView = view.getFieldView('target_groups');
+                expect(fieldView).not.toBe(undefined);
+                expect(fieldView.fieldID).toBe('target_groups');
+
+                expect(view.getFieldView('some_random_id')).toBe(undefined);
             });
         });
     });

@@ -8,6 +8,11 @@ Glossary
 
 .. glossary::
 
+   CI
+   Continuous Integration
+       A development process where commits are integrated frequently, and
+       automated builds and tests are triggered for each commit.
+
    Context Diff
        A type of :term:`diff file` that represents changes to a file
        using before/after sections. These are not well supported by
@@ -19,6 +24,12 @@ Glossary
        lines with an exclamation point (``!``). Changes that only add
        lines only show one section.
 
+   Default Reviewer
+   Default Reviewers
+       A feature that allows individual ussers or :term:`review groups` to be
+       automatically assigned as reviewers to a review request based on the
+       repository or files being modified.
+
    Diff File
        A file representing changes to one or more files. Common diff
        formats are :term:`unified diff`\s and :term:`context diff`\s.
@@ -29,6 +40,17 @@ Glossary
        See the `Wikipedia article
        <http://en.wikipedia.org/wiki/DomainKeys_Identified_Mail>`_ for more
        information.
+
+   Draft
+       A term used for a review request or review that's been created or
+       modified but not yet published for others to see. We store these in a
+       draft state so that the review request or review can be fully composed
+       before, giving users control over when they're finished and ready for
+       feedback.
+
+   Draft Bar
+       A green bar that represents an active draft for a review request or
+       review, allowing the draft to be discarded or published.
 
    Evolution File
        A file that contains information on how to make changes to the database
@@ -54,6 +76,11 @@ Glossary
        Review Board use Markdown to format their contents. See `John Gruber's
        Markdown Syntax Overview
        <http://daringfireball.net/projects/markdown/>`_ for more information.
+
+   OAuth2
+       OAuth2 is a framework that allows third-party applications to gain
+       limited access to user accounts, without the owner of that account
+       divulging their authentication credentials.
 
    Post-commit Hook
        A script that is executed after a commit is made to a repository.
@@ -92,6 +119,11 @@ Glossary
    Python Wheels
        The modern package format for Python applications. These are installed
        using modern versions of the :command:`pip` package installer.
+
+   Review Group
+   Review Groups
+       A group of users, often a team or set of owners on a component, that
+       can be assigned as a targetted reviewer for a review request.
 
    Review Request
    Review Requests

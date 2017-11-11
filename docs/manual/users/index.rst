@@ -87,8 +87,9 @@ content.
 Basic concepts
 --------------
 
-* :doc:`Issue Tracking <reviews/issue-tracking>`
+* :doc:`Reviews and comments <reviews/reviews>`
 * :doc:`Review draft banner <reviews/draft-banner>`
+* :doc:`Tracking issues <reviews/issue-tracking>`
 
 
 Reviewing content
@@ -99,6 +100,7 @@ Reviewing content
 * :doc:`Reviewing image file attachments <reviews/reviewing-images>`
 * :doc:`Reviewing Markdown file attachments <reviews/reviewing-markdown>`
 * :doc:`Reviewing text file attachments <reviews/reviewing-text-files>`
+* :doc:`Automated code review <reviews/automated-review/index>`
 
 
 Managing reviews
@@ -112,7 +114,7 @@ Managing reviews
 Discussing reviews
 ------------------
 
-* :doc:`Replying to comments <reviews/approving-changes>`
+* :doc:`Replying to comments <reviews/replying>`
 
 
 Editing in Markdown

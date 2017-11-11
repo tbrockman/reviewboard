@@ -673,21 +673,102 @@ class ShipItColumn(Column):
             *args, **kwargs)
 
     def render_data(self, state, review_request):
-        """Return the rendered contents of the column."""
-        if review_request.issue_open_count > 0:
-            return ('<span class="issue-count">'
-                    ' <div class="rb-icon rb-icon-datagrid-open-issues"'
-                    '      title="%s"></div> %s'
-                    '</span>'
-                    % (_('Open issue count'), review_request.issue_open_count))
-        elif review_request.shipit_count > 0:
-            return ('<span class="shipit-count">'
-                    ' <div class="rb-icon rb-icon-datagrid-shipit"'
-                    '      title="%s"></div> %s'
-                    '</span>'
-                    % (_('Ship It! count'), review_request.shipit_count))
+        """Return the rendered contents of the column.
+
+        Args:
+            state (djblets.datagrid.grids.StatefulColumn):
+                The state for the datagrid.
+
+            review_request (reviewboard.reviews.models.review_request.
+                            ReviewRequest):
+                The review request.
+
+        Returns:
+            django.utils.safestring.SafeText:
+            The rendered HTML for the column.
+        """
+        open_issues = review_request.issue_open_count
+        verifying_issues = review_request.issue_verifying_count
+
+        if open_issues > 0 and verifying_issues > 0:
+            return self._render_counts([
+                {
+                    'count': open_issues,
+                    'title': _('Open issue count'),
+                },
+                {
+                    'count': verifying_issues,
+                    'css_class': 'issue-verifying-count',
+                    'icon_name': 'issue-verifying',
+                    'title': _('Verifying issue count'),
+                },
+            ])
+        elif open_issues > 0:
+            return self._render_counts([{
+                'count': open_issues,
+                'title': _('Open issue count'),
+            }])
+        elif verifying_issues > 0:
+            return self._render_counts([{
+                'count': verifying_issues,
+                'icon_name': 'issue-verifying',
+                'title': _('Verifying issue count'),
+            }])
+        elif review_request.shipit_count:
+            return self._render_counts(
+                [{
+                    'count': review_request.shipit_count,
+                    'css_class': 'shipit-count',
+                    'icon_name': 'shipit',
+                    'title': _('Ship It! count'),
+                }],
+                container_css_class='shipit-count-container')
         else:
             return ''
+
+    def _render_counts(self, count_details,
+                       container_css_class='issue-count-container'):
+        """Render the counts for the column.
+
+        This will render a container bubble in the column and render each
+        provided count and icon in the bubble. This can be used for issues,
+        Ship Its, or anything else we need down the road.
+
+        Args:
+            count_details (list of dict):
+                The list of details for the count. This must have ``count``
+                and ``title`` keys, and may optionally have ``css_class`` and
+                ``icon_name`` keys.
+
+            container_css_class (unicode, optional):
+                The optional CSS class name for the outer container.
+
+        Returns:
+            django.utils.safestring.SafeText:
+            The resulting HTML for the counts bubble.
+        """
+        # Note that the HTML is very whitespace-sensitive, so don't try to
+        # change the templates to be nicely indented. The spacing is this way
+        # for a reason.
+        #
+        # We also can't use format_html_join, unfortunately, as that doesn't
+        # support keyword arguments.
+        return format_html(
+            '<div class="{container_css_class}">{count_html}</div>',
+            container_css_class=container_css_class,
+            count_html=mark_safe(''.join(
+                format_html(
+                    '<span class="{css_class}">'
+                    '<span class="rb-icon rb-icon-datagrid-{icon_name}"'
+                    '      title="{title}"></span>'
+                    '{count}'
+                    '</span>',
+                    **dict({
+                        'css_class': 'issue-count',
+                        'icon_name': 'open-issues',
+                    }, **count_detail))
+                for count_detail in count_details
+            )))
 
 
 class SummaryColumn(Column):

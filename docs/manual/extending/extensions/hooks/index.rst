@@ -9,10 +9,11 @@ Extension Hooks
 
    account-page-forms-hook
    account-pages-hook
-   action-hooks
+   action-hook
    admin-widget-hook
    api-extra-data-access-hook
    auth-backend-hook
+   avatar-service-hook
    comment-detail-display-hook
    dashboard-columns-hook
    dashboard-sidebar-items-hook
@@ -28,5 +29,6 @@ Extension Hooks
    signal-hook
    template-hook
    url-hook
+   user-infobox-hook
    user-page-sidebar-items-hook
    webapi-capabilities-hook

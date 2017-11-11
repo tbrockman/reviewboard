@@ -17,13 +17,13 @@ from __future__ import unicode_literals
 django_doc_major_version = '1.6'
 
 #: The major version of Djblets we're using for documentation.
-djblets_doc_major_version = '0.10'
+djblets_doc_major_version = '1.0'
 
 #: The version range required for Django.
 django_version = '>=1.6.11,<1.6.999'
 
 #: The version range required for Djblets.
-djblets_version = '>=0.10b1,<=0.10.999'
+djblets_version = '>=1.0rc2.dev,<=1.0.999'
 
 #: All dependencies required to install Review Board.
 package_dependencies = {
@@ -45,6 +45,15 @@ package_dependencies = {
     'python-memcached': '',
     'pytz': '>=2015.2',
     'Whoosh': '>=2.6',
+}
+
+#: Dependencies only specified during the packaging process.
+#:
+#: These dependencies are not used when simply developing Review Board.
+#: The dependencies here are generally intended to be those that themselves
+#: require Review Board.
+package_only_dependencies = {
+    'rbintegrations': '>=0.5rc2,<0.5rc3',
 }
 
 

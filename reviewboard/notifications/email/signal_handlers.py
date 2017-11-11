@@ -95,7 +95,7 @@ def send_reply_published_mail(user, reply, trivial, **kwargs):
         _update_email_info(reply, message.message_id)
 
 
-def send_review_published_mail(user, review, request, to_submitter_only,
+def send_review_published_mail(user, review, request, to_owner_only,
                                **kwargs):
     """Send e-mail when a review is published.
 
@@ -110,7 +110,7 @@ def send_review_published_mail(user, review, request, to_submitter_only,
         review (reviewboard.reviews.models.review.Review):
             The review that was published.
 
-        to_submitter_only (bool):
+        to_owner_only (bool):
             Whether or not the mail should only be sent to the review request
             submitter.
 
@@ -135,7 +135,7 @@ def send_review_published_mail(user, review, request, to_submitter_only,
                                review=review,
                                review_request=review_request,
                                request=request,
-                               to_submitter_only=to_submitter_only)
+                               to_owner_only=to_owner_only)
 
     if sent:
         _update_email_info(review, message.message_id)
@@ -247,27 +247,38 @@ def send_user_registered_mail(user, **kwargs):
                user=user)
 
 
-def send_webapi_token_saved_mail(instance, created=False, **kwargs):
-    """Send e-mail when an API token is created or updated.
+def send_webapi_token_created_mail(instance, auto_generated=False, **kwargs):
+    """Send e-mail when an API token is created.
 
     Args:
         instance (reviewboard.webapi.models.WebAPIToken):
-            The token that has been created or updated.
+            The token that has been created.
 
-        created (bool):
-            Whether or not the token is created.
+        should_send_email (bool, optional):
+            Whether or not an e-mail should be sent.
 
         **kwargs (dict):
             Unused keyword arguments provided by the signal.
     """
-    if created:
-        op = 'created'
-    else:
-        op = 'updated'
+    if not auto_generated:
+        send_email(prepare_webapi_token_mail,
+                   webapi_token=instance,
+                   op='created')
 
+
+def send_webapi_token_updated_mail(instance, **kwargs):
+    """Send e-mail when an API token is updated.
+
+    Args:
+        instance (reviewboard.webapi.models.WebAPIToken):
+            The token that was updated.
+
+        **kwargs (dict):
+            Unused keyword arguments provided by the signal.
+    """
     send_email(prepare_webapi_token_mail,
                webapi_token=instance,
-               op=op)
+               op='updated')
 
 
 def send_webapi_token_deleted_mail(instance, **kwargs):

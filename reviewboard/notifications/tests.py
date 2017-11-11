@@ -11,6 +11,7 @@ from django.test.client import RequestFactory
 from django.test.utils import override_settings
 from django.utils import six
 from django.utils.datastructures import MultiValueDict
+from django.utils.six.moves import range
 from django.utils.six.moves.urllib.request import OpenerDirector
 from djblets.mail.testing import DmarcDnsTestsMixin
 from djblets.mail.utils import (build_email_address,
@@ -429,7 +430,7 @@ class ReviewRequestEmailTests(EmailTestHelper, DmarcDnsTestsMixin, SpyAgency,
             siteconfig.save()
             load_site_config()
 
-    def test_review_to_submitter_only(self):
+    def test_review_to_owner_only(self):
         """Test that e-mails from reviews published to the submitter only will
         only go to the submitter and the reviewer
         """
@@ -444,7 +445,7 @@ class ReviewRequestEmailTests(EmailTestHelper, DmarcDnsTestsMixin, SpyAgency,
         review = self.create_review(review_request=review_request,
                                     publish=False)
 
-        review.publish(to_submitter_only=True)
+        review.publish(to_owner_only=True)
         self.assertEqual(len(mail.outbox), 1)
 
         message = mail.outbox[0]
@@ -912,25 +913,33 @@ class ReviewRequestEmailTests(EmailTestHelper, DmarcDnsTestsMixin, SpyAgency,
         diffset = self.create_diffset(review_request=review_request)
         prefix = 'X' * 97
 
-        for i in range(400):
+        filediffs = []
+
+        # Each filename is 100 characters long. For each header we add 26
+        # characters: the key, a ': ', and the terminating '\r\n'.
+        # 8192 / (100 + 26) rounds down to 65. We'll bump it up to 70 just
+        # to be careful.
+        for i in range(70):
             filename = '%s%#03d' % (prefix, i)
             self.assertEqual(len(filename), 100)
-            self.create_filediff(diffset=diffset,
-                                 source_file=filename,
-                                 dest_file=filename,
-                                 source_revision=PRE_CREATION)
+            filediffs.append(self.create_filediff(
+                diffset=diffset,
+                source_file=filename,
+                dest_file=filename,
+                source_revision=PRE_CREATION,
+                diff='',
+                save=False))
+
+        FileDiff.objects.bulk_create(filediffs)
 
         review_request.publish(review_request.submitter)
 
         self.assertEqual(len(mail.outbox), 1)
         message = mail.outbox[0]
 
-        self.assertTrue('X-ReviewBoard-Diff-For' in message._headers)
+        self.assertIn('X-ReviewBoard-Diff-For', message._headers)
         diff_headers = message._headers.getlist('X-ReviewBoard-Diff-For')
 
-        # Each filename is 100 characters long. For each header we add 26
-        # characters: the key, a ': ', and the terminating '\r\n'.
-        # 8192 / (100 + 26) rounds down to 65.
         self.assertEqual(len(logging.warning.spy.calls), 1)
         self.assertEqual(len(diff_headers), 65)
 
@@ -1486,6 +1495,17 @@ class WebAPITokenEmailTests(EmailTestHelper, TestCase):
         self.assertIn(partial_token, html_body)
         self.assertIn('A new API token has been added', email.body)
         self.assertIn('A new API token has been added', html_body)
+
+    def test_create_token_no_email(self):
+        """Testing WebAPIToken.objects.generate_token does not send e-mail
+        when auto_generated is True
+        """
+        WebAPIToken.objects.generate_token(user=self.user,
+                                           note='Test',
+                                           policy={},
+                                           auto_generated=True)
+
+        self.assertEqual(len(mail.outbox), 0)
 
     def test_update_token(self):
         """Testing sending e-mail when an existing API Token is updated"""

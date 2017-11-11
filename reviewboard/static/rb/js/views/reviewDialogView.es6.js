@@ -1,4 +1,4 @@
-{
+(function() {
 
 
 /**
@@ -30,8 +30,13 @@ const BaseCommentView = Backbone.View.extend({
          </div>
          <div class="edit-field">
           <input class="issue-opened" id="<%= issueOpenedID %>"
-                 type="checkbox" />
+                 type="checkbox">
           <label for="<%= issueOpenedID %>"><%- openAnIssueText %></label>
+          <% if (showVerify) { %>
+           <input class="issue-verify" id="<%= verifyIssueID %>"
+                  type="checkbox">
+           <label for="<%= verifyIssueID %>"><%- verifyIssueText %></label>
+          <% } %>
          </div>
         </div>
     `),
@@ -71,7 +76,7 @@ const BaseCommentView = Backbone.View.extend({
      *     Whether the comment needs to be saved.
      */
     needsSave() {
-        return (this.$editor.inlineEditor('dirty') ||
+        return (this.inlineEditorView.isDirty() ||
                 !_.isEqual(this.model.get('extraData'), this._origExtraData));
     },
 
@@ -91,9 +96,9 @@ const BaseCommentView = Backbone.View.extend({
          * call this.model.save(). If it does not, just save the model
          * directly.
          */
-        if (this.$editor.inlineEditor('dirty')) {
+        if (this.inlineEditorView.isDirty()) {
             this.model.once('sync', () => options.success());
-            this.$editor.inlineEditor('submit');
+            this.inlineEditorView.submit();
         } else {
             this.model.save(_.extend({
                 attrs: ['forceTextType', 'includeTextTypes', 'extraData'],
@@ -119,6 +124,9 @@ const BaseCommentView = Backbone.View.extend({
                 issueOpenedID: _.uniqueId('issue-opened'),
                 openAnIssueText: gettext('Open an Issue'),
                 text: this.model.get('text'),
+                verifyIssueID: _.uniqueId('issue-verify'),
+                showVerify: RB.EnabledFeatures.issueVerification,
+                verifyIssueText: RB.CommentDialogView._verifyIssueText,
             }))
             .find('time.timesince')
                 .timesince()
@@ -144,46 +152,69 @@ const BaseCommentView = Backbone.View.extend({
                 }
             });
 
+        this._$issueVerify = this.$('.issue-verify')
+            .prop('checked', this.model.requiresVerification())
+            .change(() => {
+                const extraData = _.clone(this.model.get('extraData'));
+                extraData.require_verification =
+                    this._$issueVerify.prop('checked');
+                this.model.set('extraData', extraData);
+
+                if (!this.model.isNew()) {
+                    /*
+                     * We don't save the extraData attribute for unsaved models
+                     * because the comment won't exist yet. If we did, clicking
+                     * cancel when creating a new comment wouldn't delete the
+                     * comment.
+                     */
+                    this.model.save({
+                        attrs: ['forceTextType', 'includeTextTypes',
+                                'extra_data.require_verification'],
+                    });
+                }
+            });
+
         const $editFields = this.$('.edit-fields');
 
-        this.$editor = this.$('pre.reviewtext')
-            .inlineEditor(_.extend({
-                cls: 'inline-comment-editor',
-                editIconClass: 'rb-icon rb-icon-edit',
-                notifyUnchangedCompletion: true,
-                multiline: true,
-            }, RB.TextEditorView.getInlineEditorOptions({
+        this.$editor = this.$('pre.reviewtext');
+
+        this.inlineEditorView = new RB.RichTextInlineEditorView({
+            el: this.$editor,
+            editIconClass: 'rb-icon rb-icon-edit',
+            notifyUnchangedCompletion: true,
+            multiline: true,
+            textEditorOptions: {
                 bindRichText: {
                     model: this.model,
                     attrName: 'richText',
                 },
-            })))
-            .on({
-                complete: (e, value) => {
-                    const attrs = ['forceTextType', 'includeTextTypes',
-                                   'richText', 'text'];
+            },
+        });
+        this.inlineEditorView.render();
 
-                    if (this.model.isNew()) {
-                        /*
-                         * If this is a new comment, we have to send whether or
-                         * not an issue was opened because toggling the
-                         * issue opened checkbox before it is completed won't
-                         * save the status to the server.
-                         */
-                        attrs.push('issueOpened');
-                    }
+        this.textEditor = this.inlineEditorView.textEditor;
 
-                    this.model.set({
-                        text: value,
-                        richText: this.textEditor.richText,
-                    });
-                    this.model.save({
-                        attrs: attrs,
-                    });
-                },
+        this.listenTo(this.inlineEditorView, 'complete', value => {
+            const attrs = ['forceTextType', 'includeTextTypes',
+                           'richText', 'text'];
+
+            if (this.model.isNew()) {
+                /*
+                 * If this is a new comment, we have to send whether or not an
+                 * issue was opened because toggling the issue opened checkbox
+                 * before it is completed won't save the status to the server.
+                 */
+                attrs.push('extra_data.require_verification', 'issueOpened');
+            }
+
+            this.model.set({
+                text: value,
+                richText: this.textEditor.richText,
             });
-
-        this.textEditor = RB.TextEditorView.getFromInlineEditor(this.$editor);
+            this.model.save({
+                attrs: attrs,
+            });
+        });
 
         this.listenTo(this.model, `change:${this._getRawValueFieldsName()}`,
                       this._updateRawValue);
@@ -261,10 +292,9 @@ const BaseCommentView = Backbone.View.extend({
      */
     _updateRawValue() {
         if (this.$editor) {
-            this.$editor.inlineEditor('option', {
-                hasRawValue: true,
-                rawValue: this.model.get(this._getRawValueFieldsName()).text,
-            });
+            this.inlineEditorView.options.hasRawValue = true;
+            this.inlineEditorView.options.rawValue =
+                this.model.get(this._getRawValueFieldsName()).text;
         }
     },
 
@@ -553,37 +583,40 @@ const HeaderFooterCommentView = Backbone.View.extend({
                 .timesince()
             .end();
 
-        this.$editor = this.$('pre.reviewtext')
-            .inlineEditor(_.extend({
-                cls: 'inline-comment-editor',
-                editIconClass: 'rb-icon rb-icon-edit',
-                notifyUnchangedCompletion: true,
-                multiline: true,
-            }, RB.TextEditorView.getInlineEditorOptions({
+
+        this.$editor = this.$('pre.reviewtext');
+
+        this.inlineEditorView = new RB.RichTextInlineEditorView({
+            el: this.$editor,
+            editIconClass: 'rb-icon rb-icon-edit',
+            notifyUnchangedCompletion: true,
+            multiline: true,
+            textEditorOptions: {
                 bindRichText: {
                     model: this.model,
                     attrName: this.richTextPropertyName,
-                }
-            })))
-            .on({
-                complete: (e, value) => {
-                    this.model.set(this.propertyName, value);
-                    this.model.set(this.richTextPropertyName,
-                                   this.textEditor.richText);
-                    this.model.save({
-                        attrs: [this.propertyName, this.richTextPropertyName,
-                                'forceTextType', 'includeTextTypes'],
-                    });
                 },
-                cancel: () => {
-                    if (!this.model.get(this.propertyName)) {
-                        this._$editorContainer.hide();
-                        this._$linkContainer.show();
-                    }
-                },
-            });
+            },
+        });
+        this.inlineEditorView.render();
 
-        this.textEditor = RB.TextEditorView.getFromInlineEditor(this.$editor);
+        this.textEditor = this.inlineEditorView.textEditor;
+
+        this.listenTo(this.inlineEditorView, 'complete', value => {
+            this.model.set(this.propertyName, value);
+            this.model.set(this.richTextPropertyName,
+                           this.textEditor.richText);
+            this.model.save({
+                attrs: [this.propertyName, this.richTextPropertyName,
+                        'forceTextType', 'includeTextTypes'],
+            });
+        });
+        this.listenTo(this.inlineEditorView, 'cancel', () => {
+            if (!this.model.get(this.propertyName)) {
+                this._$editorContainer.hide();
+                this._$linkContainer.show();
+            }
+        });
 
         this._$editorContainer = this.$('.comment-text-field');
         this._$linkContainer = this.$('.add-link-container');
@@ -632,7 +665,7 @@ const HeaderFooterCommentView = Backbone.View.extend({
      *     Whether the comment needs to be saved.
      */
     needsSave() {
-        return this.$editor.inlineEditor('dirty');
+        return this.inlineEditorView.isDirty();
     },
 
     /**
@@ -644,7 +677,7 @@ const HeaderFooterCommentView = Backbone.View.extend({
      */
     save(options) {
         this.model.once('sync', () => options.success());
-        this.$editor.inlineEditor('submit');
+        this.inlineEditorView.submit();
     },
 
     /**
@@ -665,7 +698,7 @@ const HeaderFooterCommentView = Backbone.View.extend({
         this._$linkContainer.hide();
         this._$editorContainer.show();
 
-        this.$editor.inlineEditor('startEdit');
+        this.inlineEditorView.startEdit();
 
         if (ev) {
             ev.preventDefault();
@@ -692,10 +725,9 @@ const HeaderFooterCommentView = Backbone.View.extend({
         if (this.$editor) {
             const rawValues = this.model.get(this._getRawValueFieldsName());
 
-            this.$editor.inlineEditor('option', {
-                hasRawValue: true,
-                rawValue: rawValues[this.propertyName],
-            });
+            this.inlineEditorView.options.hasRawValue = true;
+            this.inlineEditorView.options.rawValue =
+                rawValues[this.propertyName];
         }
     },
 
@@ -733,7 +765,12 @@ RB.ReviewDialogView = Backbone.View.extend({
         </div>
         <div class="review-dialog-hooks-container"></div>
         <div class="edit-field body-top"></div>
-        <ol class="review-comments"></ol>
+        <ol id="review-dialog-body-top-comments" class="review-comments"></ol>
+        <ol id="review-dialog-general-comments" class="review-comments"></ol>
+        <ol id="review-dialog-screenshot-comments" class="review-comments"></ol>
+        <ol id="review-dialog-file-attachment-comments" class="review-comments"></ol>
+        <ol id="review-dialog-diff-comments" class="review-comments"></ol>
+        <ol id="review-dialog-body-bottom-comments" class="review-comments"></ol>
         <div class="spinner"><span class="fa fa-spinner fa-pulse"></span></div>
         <div class="edit-field body-bottom"></div>
     `),
@@ -742,7 +779,10 @@ RB.ReviewDialogView = Backbone.View.extend({
      * Initialize the review dialog.
      */
     initialize() {
-        this._$comments = null;
+        this._$diffComments = $();
+        this._$fileAttachmentComments = $();
+        this._$generalComments = $();
+        this._$screenshotComments = $();
         this._$dlg = null;
         this._$buttons = null;
         this._$spinner = null;
@@ -768,11 +808,28 @@ RB.ReviewDialogView = Backbone.View.extend({
             },
         });
 
+        this._bodyTopView = new HeaderFooterCommentView({
+            model: this.model,
+            propertyName: 'bodyTop',
+            richTextPropertyName: 'bodyTopRichText',
+            linkText: gettext('Add header'),
+            commentText: gettext('Header'),
+        });
+
+        this._bodyBottomView = new HeaderFooterCommentView({
+            model: this.model,
+            propertyName: 'bodyBottom',
+            richTextPropertyName: 'bodyBottomRichText',
+            linkText: gettext('Add footer'),
+            commentText: gettext('Footer'),
+        });
+
         this.listenTo(this._diffCommentsCollection, 'add', comment => {
-            this._renderComment(new DiffCommentView({
+            const view = new DiffCommentView({
                 model: comment,
                 diffQueue: this._diffQueue,
-            }));
+            });
+            this._renderComment(view, this._$diffComments);
         });
 
         this._fileAttachmentCommentsCollection = new RB.ResourceCollection([], {
@@ -782,10 +839,11 @@ RB.ReviewDialogView = Backbone.View.extend({
 
         this.listenTo(this._fileAttachmentCommentsCollection, 'add',
                       comment => {
-            this._renderComment(new FileAttachmentCommentView({
-                model: comment,
-            }));
+            const view = new FileAttachmentCommentView({ model: comment });
+            this._renderComment(view, this._$fileAttachmentComments);
         });
+
+        this._$lastGeneralComment = null;
 
         this._generalCommentsCollection = new RB.ResourceCollection([], {
             model: RB.GeneralComment,
@@ -793,9 +851,8 @@ RB.ReviewDialogView = Backbone.View.extend({
         });
 
         this.listenTo(this._generalCommentsCollection, 'add', comment => {
-            this._renderComment(new GeneralCommentView({
-                model: comment,
-            }));
+            const view = new GeneralCommentView({ model: comment });
+            this._renderComment(view, this._$generalComments);
         });
 
         this._screenshotCommentsCollection = new RB.ResourceCollection([], {
@@ -804,9 +861,8 @@ RB.ReviewDialogView = Backbone.View.extend({
         });
 
         this.listenTo(this._screenshotCommentsCollection, 'add', comment => {
-            this._renderComment(new ScreenshotCommentView({
-                model: comment,
-            }));
+            const view = new ScreenshotCommentView({ model: comment });
+            this._renderComment(view, this._$screenshotComments);
         });
 
         this._defaultUseRichText =
@@ -878,7 +934,12 @@ RB.ReviewDialogView = Backbone.View.extend({
             markdownText: gettext('Markdown Reference'),
         }));
 
-        this._$comments = this.$('.review-comments');
+        this._$diffComments = this.$('#review-dialog-diff-comments');
+        this._$fileAttachmentComments =
+            this.$('#review-dialog-file-attachment-comments');
+        this._$generalComments = this.$('#review-dialog-general-comments');
+        this._$screenshotComments =
+            this.$('#review-dialog-screenshot-comments');
         this._$spinner = this.$('.spinner');
         this._$shipIt = this.$('#id_shipit');
 
@@ -897,24 +958,10 @@ RB.ReviewDialogView = Backbone.View.extend({
             hookView.render();
         });
 
-        this._bodyTopView = new HeaderFooterCommentView({
-            model: this.model,
-            propertyName: 'bodyTop',
-            richTextPropertyName: 'bodyTopRichText',
-            linkText: gettext('Add header'),
-            commentText: gettext('Header'),
-        });
-
-        this._bodyBottomView = new HeaderFooterCommentView({
-            model: this.model,
-            propertyName: 'bodyBottom',
-            richTextPropertyName: 'bodyBottomRichText',
-            linkText: gettext('Add footer'),
-            commentText: gettext('Footer'),
-        });
-
-        this._bodyTopView.$el.appendTo(this._$comments);
-        this._bodyBottomView.$el.appendTo(this._$comments);
+        this._bodyTopView.$el.appendTo(
+            this.$('#review-dialog-body-top-comments'));
+        this._bodyBottomView.$el.appendTo(
+            this.$('#review-dialog-body-bottom-comments'));
 
         /*
          * Even if the model is already loaded, we may not have the right text
@@ -1039,8 +1086,11 @@ RB.ReviewDialogView = Backbone.View.extend({
      * Args:
      *     view (BaseCommentView):
      *         The view to render.
+     *
+     *     $container (jQuery):
+     *         The container to add the view to.
      */
-    _renderComment(view) {
+    _renderComment(view, $container) {
         this._setTextTypeAttributes(view.model);
 
         this._commentViews.push(view);
@@ -1056,8 +1106,11 @@ RB.ReviewDialogView = Backbone.View.extend({
             this._commentViews = _.without(this._commentViews, view);
         });
 
-        view.$el.insertBefore(this._bodyBottomView.$el);
+        $container.append(view.$el);
         view.render();
+
+        this._$dlg.scrollTop(view.$el.position().top +
+                             this._$dlg.getExtents('p', 't'));
     },
 
     /**
@@ -1067,30 +1120,35 @@ RB.ReviewDialogView = Backbone.View.extend({
      * this view's element as the child.
      */
     _renderDialog() {
-        const buttons = [];
+        const $leftButtons = $('<div class="review-dialog-buttons-left"/>');
+        const $rightButtons = $('<div class="review-dialog-buttons-right"/>');
+        const buttons = [$leftButtons, $rightButtons];
 
         if (RB.EnabledFeatures.generalComments) {
-            buttons.push(
+            $leftButtons.append(
                 $('<input type="button" />')
-                    .val(gettext('Add Comment'))
+                    .val(gettext('Add General Comment'))
+                    .attr('title',
+                          gettext('Add a new general comment to the review'))
                     .click(this._onAddCommentClicked)
             );
         }
 
-        buttons.push(
-            $('<div id="review-form-publish-split-btn-container" />'),
+        $rightButtons.append(
+            $('<div id="review-form-publish-split-btn-container" />'));
 
+        $rightButtons.append(
             $('<input type="button"/>')
                 .val(gettext('Discard Review'))
-                .click(() => this._onDiscardClicked()),
+                .click(() => this._onDiscardClicked()));
 
+        $rightButtons.append(
             $('<input type="button"/>')
                 .val(gettext('Close'))
                 .click(() => {
                     this._saveReview(false);
                     return false;
-                })
-        );
+                }));
 
         const reviewRequest = this.model.get('parentObject');
 
@@ -1121,13 +1179,12 @@ RB.ReviewDialogView = Backbone.View.extend({
                 return false;
             },
             direction: 'up',
-            zIndex: $('#review-form-modalbox').css('zIndex'),
             alternatives: [
                 {
-                    text: gettext('... to Submitter Only'),
+                    text: gettext('... and only e-mail the owner'),
                     click: () => {
                         this._saveReview(true, {
-                            publishToSubmitterOnly: true
+                            publishToOwnerOnly: true
                         });
                         this.close();
                         return false;
@@ -1157,8 +1214,7 @@ RB.ReviewDialogView = Backbone.View.extend({
         this._generalCommentsCollection.add(comment);
         this._bodyBottomView.$el.show();
         this._commentViews[this._commentViews.length - 1]
-            .$editor
-            .inlineEditor('startEdit');
+            .inlineEditorView.startEdit();
 
         return false;
     },
@@ -1215,8 +1271,8 @@ RB.ReviewDialogView = Backbone.View.extend({
      *         Options for the model save operation.
      */
     _saveReview(publish, options={}) {
-        if (publish && options.publishToSubmitterOnly) {
-            this.model.set('publishToSubmitterOnly', true);
+        if (publish && options.publishToOwnerOnly) {
+            this.model.set('publishToOwnerOnly', true);
         }
 
         this._$buttons.prop('disabled');
@@ -1254,7 +1310,7 @@ RB.ReviewDialogView = Backbone.View.extend({
 
                 saveFunc.call(this.model, {
                     attrs: ['public', 'shipIt', 'forceTextType',
-                            'includeTextTypes', 'publishToSubmitterOnly'],
+                            'includeTextTypes', 'publishToOwnerOnly'],
                     success: () => $.funcQueue('reviewForm').next(),
                     error: function() {
                         console.error('Failed to save review', arguments);
@@ -1346,4 +1402,4 @@ RB.ReviewDialogView = Backbone.View.extend({
 });
 
 
-}
+})();

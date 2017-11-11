@@ -5,8 +5,8 @@
 Extending Review Board
 ======================
 
-Review Board is a highly-extensible code review product. Like a browser,
-anyone can write extensions that improve the product, adding new features,
+Review Board is a highly-extensible code review product. Like a browser, anyone
+can write extensions that improve the product, adding new features,
 enhancing existing ones, changing the look and feel, and integrating with
 other services. Here are just a few examples of what you can accomplish by
 writing an extension:
@@ -69,6 +69,10 @@ extension hooks available to you.
     :ref:`url-hook`:
         Defines new URLs in Review Board, which can point to your own custom
         views.
+
+    :ref:`avatar-service-hook`:
+        Adds a new avatar service, which can be used to provide pictures for
+        user accounts.
 
 :ref:`Action Hooks <action-hooks>`:
     A series of hooks used to add new actions for review requests, the diff
@@ -210,6 +214,7 @@ interested in. Note that some of these are still a work-in-progress.
 * :ref:`Writing review UIs <extension-review-ui-integration>`
 * :ref:`Writing new REST APIs <extension-resources>`
 * :ref:`Writing authentication backends <writing-auth-backends>`
+* :ref:`Adding review request fields <extension-review-request-fields>`
 
 
 Code Base Documentation
@@ -241,6 +246,7 @@ Djblets
    extensions/index
    extensions/hooks/index
    extensions/js-hooks/index
+   extensions/review-request-fields
    extensions/review-ui
    auth-backends
    legacy-auth-backends

@@ -212,8 +212,7 @@ class ReviewRequestPageDataTests(TestCase):
                              self.changedesc2.timestamp)
         else:
             self.assertEqual(data.changedescs, [])
-            self.assertEqual(data.latest_changedesc_timestamp,
-                             datetime.fromtimestamp(0, timezone.utc))
+            self.assertIsNone(data.latest_changedesc_timestamp)
 
         if expect_draft:
             self.assertEqual(data.draft, self.draft)
@@ -299,14 +298,14 @@ class ReviewRequestPageDataTests(TestCase):
             self.assertEqual(
                 data.all_comments,
                 [
-                    self.diff_comment1,
-                    self.diff_comment2,
+                    self.general_comment1,
+                    self.general_comment2,
                     self.screenshot_comment1,
                     self.screenshot_comment2,
                     self.file_attachment_comment1,
                     self.file_attachment_comment2,
-                    self.general_comment1,
-                    self.general_comment2,
+                    self.diff_comment1,
+                    self.diff_comment2,
                 ])
         else:
             self.assertEqual(data.all_comments, [])
@@ -315,12 +314,12 @@ class ReviewRequestPageDataTests(TestCase):
             self.assertEqual(
                 data.issues,
                 [
-                    self.diff_comment1,
-                    self.diff_comment2,
-                    self.file_attachment_comment1,
-                    self.file_attachment_comment2,
                     self.general_comment1,
                     self.general_comment2,
+                    self.file_attachment_comment1,
+                    self.file_attachment_comment2,
+                    self.diff_comment1,
+                    self.diff_comment2,
                 ])
             self.assertEqual(
                 data.issue_counts,
@@ -329,6 +328,7 @@ class ReviewRequestPageDataTests(TestCase):
                     'open': 2,
                     'resolved': 2,
                     'dropped': 2,
+                    'verifying': 0,
                 })
         else:
             self.assertEqual(data.issues, [])
