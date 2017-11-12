@@ -1,10 +1,9 @@
 from __future__ import unicode_literals
 
 from django.contrib.auth.models import User
-from django.utils import six, timezone
+from django.utils import six
 from djblets.testing.decorators import add_fixtures
 from kgb import SpyAgency
-from warnings import catch_warnings
 
 from reviewboard.changedescs.models import ChangeDescription
 from reviewboard.reviews.errors import PublishError
@@ -15,34 +14,11 @@ from reviewboard.reviews.signals import (review_request_reopened,
 from reviewboard.scmtools.core import ChangeSet
 from reviewboard.testing import TestCase
 
+
 class ReviewRequestTests(SpyAgency, TestCase):
     """Tests for reviewboard.reviews.models.ReviewRequest."""
 
     fixtures = ['test_users']
-
-    def test_get_close_description_deprecated(self):
-        """Testing ReviewRequest.get_close_description causes deprecation
-        warning"""
-        review_request = self.create_review_request(publish=True)
-
-        with catch_warnings(record=True) as w:
-            review_request.get_close_description()
-            assert len(w) == 1
-            assert issubclass(w[-1].category, DeprecationWarning)
-            assert "deprecated" in str(w[-1].message)
-
-    def test_get_close_info_returns_correct_information(self):
-        """Testing ReviewRequest.get_close_info returns all necessary
-        information"""
-        review_request = self.create_review_request(publish=True)
-        review_request.close(close_type=ReviewRequest.SUBMITTED, \
-        description="test123", rich_text=True)
-        close_info = review_request.get_close_info()
-        self.assertTrue('timestamp' in close_info)
-        self.assertTrue(close_info['timestamp'] < timezone.now())
-        self.assertTrue('close_description' in close_info)
-        self.assertTrue(close_info['close_description'])
-        self.assertTrue('is_rich_text' in close_info)
 
     def test_public_with_discard_reopen_submitted(self):
         """Testing ReviewRequest.public when discarded, reopened, submitted"""
