@@ -187,6 +187,7 @@ def build_diff_line_context(index, chunk_index, standalone, line, anchor_fmt='',
                             is_delete=False, is_replace=False,
                             is_insert=False, is_first_line=False,
                             is_last_line=False):
+    """Builds the context to render a single line of a diff."""
     row_classes = []
     cell_1_classes = ['l']
     cell_2_classes = ['r']
@@ -336,6 +337,18 @@ def build_diff_line_context(index, chunk_index, standalone, line, anchor_fmt='',
 def format_context_mobile(context, is_insert=False, is_replace=False,
                           is_delete=False, is_equal=False):
 
+    """Formats the context received from `build_diff_line_context` for usage
+    with printf-formatted template `mobile_line_fmt`
+
+    Determines which lines/classes of context are necessary to render the line.
+
+    For an insertion, show line 2 (the modification)
+    For a deletion, show line 1 (the deleted line)
+    For equal lines, show line 1 (but it doesn't really matter)
+    For a replacement, return two contexts, one with the original line
+    and its line number/classes, another for the modified.
+    """
+
     old_chunk_context = {}
 
     if is_insert:
@@ -433,5 +446,9 @@ def diff_lines(index, chunk, standalone, line_fmt, mobile_line_fmt,
         result.append(rendered_line_fmt % context)
         if (is_replace and is_mobile):
             old_chunk_result.append(rendered_line_fmt % old_chunk_context)
+
+    # In the event that the chunk is a replacement and we are in top-down view
+    # this will return two chunks, the old chunk on top of the new.
+    # Otherwise, just concatenate an empty array to our result
 
     return ''.join(old_chunk_result + result)
