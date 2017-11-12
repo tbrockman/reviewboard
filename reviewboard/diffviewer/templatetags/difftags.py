@@ -1,6 +1,6 @@
 from __future__ import unicode_literals
 
-import re
+import re, copy
 
 from django import template
 from django.template.loader import render_to_string
@@ -180,9 +180,201 @@ def diff_chunk_header(context, header):
                              'rb-icon-diff-expand-header')
 
 
+def build_diff_line_context(index, chunk_index, standalone, line, anchor_fmt='',
+                            begin_collapse_fmt='',
+                            end_collapse_fmt='',
+                            moved_fmt='', is_mobile=False, is_equal=False,
+                            is_delete=False, is_replace=False,
+                            is_insert=False, is_first_line=False,
+                            is_last_line=False):
+    row_classes = []
+    cell_1_classes = ['l']
+    cell_2_classes = ['r']
+    row_class_attr = ''
+    cell_1_class_attr = ''
+    cell_2_class_attr = ''
+    line1 = line[2]
+    line2 = line[5]
+    linenum1 = line[1]
+    linenum2 = line[4]
+    show_collapse = False
+    anchor = None
+
+    if is_first_line:
+        row_classes.append('first')
+
+    if is_last_line:
+        row_classes.append('last')
+
+    if not is_equal:
+        if is_first_line:
+            anchor = '%s.%s' % (index, chunk_index)
+
+        if line[7]:
+            row_classes.append('whitespace-line')
+
+        if is_replace:
+            if len(line1) < DiffChunkGenerator.STYLED_MAX_LINE_LEN:
+                line1 = highlightregion(line1, line[3])
+
+            if len(line2) < DiffChunkGenerator.STYLED_MAX_LINE_LEN:
+                line2 = highlightregion(line2, line[6])
+    else:
+        show_collapse = (is_first_line and standalone)
+
+    if (not is_insert and
+            len(line1) < DiffChunkGenerator.STYLED_MAX_LINE_LEN):
+        line1 = showextrawhitespace(line1)
+
+    if (not is_delete and
+            len(line2) < DiffChunkGenerator.STYLED_MAX_LINE_LEN):
+        line2 = showextrawhitespace(line2)
+
+    moved_from = {}
+    moved_to = {}
+    is_moved_row = False
+    is_first_moved_row = False
+
+    if len(line) > 8 and isinstance(line[8], dict):
+        moved_info = line[8]
+
+        if 'from' in moved_info:
+            moved_from_linenum, moved_from_first = moved_info['from']
+            is_moved_row = True
+
+            cell_2_classes.append('moved-from')
+
+            if moved_from_first:
+                # This is the start of a new move range.
+                is_first_moved_row = True
+                cell_2_classes.append('moved-from-start')
+                moved_from = {
+                    'class': 'moved-flag',
+                    'line': mark_safe('moved-from-%s'
+                                      % moved_from_linenum),
+                    'target': mark_safe('moved-to-%s' % linenum2),
+                    'text': _('Moved from line %s') % moved_from_linenum,
+                }
+
+        if 'to' in moved_info:
+            moved_to_linenum, moved_to_first = moved_info['to']
+            is_moved_row = True
+
+            cell_1_classes.append('moved-to')
+
+            if moved_to_first:
+                # This is the start of a new move range.
+                is_first_moved_row = True
+                cell_1_classes.append('moved-to-start')
+                moved_to = {
+                    'class': 'moved-flag',
+                    'line': mark_safe('moved-to-%s' % moved_to_linenum),
+                    'target': mark_safe('moved-from-%s' % linenum1),
+                    'text': _('Moved to line %s') % moved_to_linenum,
+                }
+
+    if is_moved_row:
+        row_classes.append('moved-row')
+
+    if is_first_moved_row:
+        row_classes.append('moved-row-start')
+
+    if row_classes:
+        row_class_attr = ' class="%s"' % ' '.join(row_classes)
+
+    if cell_1_classes:
+        cell_1_class_attr = ' class="%s"' % ' '.join(cell_1_classes)
+
+    if cell_2_classes:
+        cell_2_class_attr = ' class="%s"' % ' '.join(cell_2_classes)
+
+    anchor_html = ''
+    begin_collapse_html = ''
+    end_collapse_html = ''
+    moved_from_html = ''
+    moved_to_html = ''
+
+    context = {
+        'chunk_index': chunk_index,
+        'row_class_attr': row_class_attr,
+        'cell_1_class_attr': cell_1_class_attr,
+        'cell_2_class_attr': cell_2_class_attr,
+        'linenum_row': line[0],
+        'linenum1': linenum1,
+        'linenum2': linenum2,
+        'line1': line1,
+        'line2': line2,
+        'moved_from': moved_from,
+        'moved_to': moved_to,
+    }
+
+    if anchor:
+        anchor_html = anchor_fmt % {
+            'anchor': anchor,
+        }
+
+    if show_collapse:
+        begin_collapse_html = begin_collapse_fmt % context
+        end_collapse_html = end_collapse_fmt % context
+
+    if moved_from:
+        moved_from_html = moved_fmt % moved_from
+
+    if moved_to:
+        moved_to_html = moved_fmt % moved_to
+
+    context.update({
+        'anchor_html': anchor_html,
+        'begin_collapse_html': begin_collapse_html,
+        'end_collapse_html': end_collapse_html,
+        'moved_from_html': moved_from_html,
+        'moved_to_html': moved_to_html,
+    })
+
+    return context
+
+def format_context_mobile(context, is_insert=False, is_replace=False,
+                          is_delete=False, is_equal=False):
+
+    old_chunk_context = {}
+
+    if is_insert:
+        context.update({
+            'modified_line': context['line2'],
+            'cell_class_attr': context['cell_2_class_attr'],
+        })
+    elif is_delete:
+        context.update({
+            'modified_line': context['line1'],
+            'cell_class_attr': context['cell_1_class_attr'],
+        })
+    elif is_equal:
+        context.update({
+            'modified_line': context['line1'],
+            'cell_class_attr': context['cell_1_class_attr'],
+        })
+    elif is_replace:
+        context.update({
+            'modified_line': context['line2'],
+            'cell_class_attr': context['cell_2_class_attr'],
+        })
+        old_chunk_context = copy.deepcopy(context)
+        old_chunk_context.update({
+            'linenum2': '',
+            'modified_line': context['line1'],
+            'cell_class_attr': context['cell_1_class_attr'],
+            'moved_from_html': '',
+        })
+        context['linenum1'] = ''
+        context['moved_to_html'] = ''
+
+    return context, old_chunk_context
+
 @register.simple_tag
-def diff_lines(index, chunk, standalone, line_fmt, anchor_fmt='',
-               begin_collapse_fmt='', end_collapse_fmt='', moved_fmt=''):
+def diff_lines(index, chunk, standalone, line_fmt, mobile_line_fmt,
+               anchor_fmt='',
+               begin_collapse_fmt='', end_collapse_fmt='', moved_fmt='',
+               is_mobile=False):
     """Renders the lines of a diff.
 
     This will render each line in the diff viewer. The function expects
@@ -201,6 +393,7 @@ def diff_lines(index, chunk, standalone, line_fmt, anchor_fmt='',
     is_replace = False
     is_insert = False
     is_delete = False
+    rendered_line_fmt = ''
 
     if change == 'equal':
         is_equal = True
@@ -211,153 +404,34 @@ def diff_lines(index, chunk, standalone, line_fmt, anchor_fmt='',
     elif change == 'delete':
         is_delete = True
 
+    if is_mobile:
+        rendered_line_fmt = mobile_line_fmt
+    else:
+        rendered_line_fmt = line_fmt
+
     result = []
+    old_chunk_result = []
 
     for i, line in enumerate(lines):
-        row_classes = []
-        cell_1_classes = ['l']
-        cell_2_classes = ['r']
-        row_class_attr = ''
-        cell_1_class_attr = ''
-        cell_2_class_attr = ''
-        line1 = line[2]
-        line2 = line[5]
-        linenum1 = line[1]
-        linenum2 = line[4]
-        show_collapse = False
-        anchor = None
 
-        if i == 0:
-            row_classes.append('first')
+        old_chunk_context = {}
 
-        if i == num_lines - 1:
-            row_classes.append('last')
+        context = build_diff_line_context(index, chunk_index, standalone,
+                                          line, anchor_fmt, begin_collapse_fmt,
+                                          end_collapse_fmt, moved_fmt,
+                                          is_mobile, is_equal, is_delete,
+                                          is_replace, is_insert, i == 0,
+                                          i == num_lines - 1)
 
-        if not is_equal:
-            if i == 0:
-                anchor = '%s.%s' % (index, chunk_index)
+        if is_mobile:
+            context, old_chunk_context = format_context_mobile(context,
+                                                               is_insert,
+                                                               is_replace,
+                                                               is_delete,
+                                                               is_equal)
 
-            if line[7]:
-                row_classes.append('whitespace-line')
+        result.append(rendered_line_fmt % context)
+        if (is_replace and is_mobile):
+            old_chunk_result.append(rendered_line_fmt % old_chunk_context)
 
-            if is_replace:
-                if len(line1) < DiffChunkGenerator.STYLED_MAX_LINE_LEN:
-                    line1 = highlightregion(line1, line[3])
-
-                if len(line2) < DiffChunkGenerator.STYLED_MAX_LINE_LEN:
-                    line2 = highlightregion(line2, line[6])
-        else:
-            show_collapse = (i == 0 and standalone)
-
-        if (not is_insert and
-                len(line1) < DiffChunkGenerator.STYLED_MAX_LINE_LEN):
-            line1 = showextrawhitespace(line1)
-
-        if (not is_delete and
-                len(line2) < DiffChunkGenerator.STYLED_MAX_LINE_LEN):
-            line2 = showextrawhitespace(line2)
-
-        moved_from = {}
-        moved_to = {}
-        is_moved_row = False
-        is_first_moved_row = False
-
-        if len(line) > 8 and isinstance(line[8], dict):
-            moved_info = line[8]
-
-            if 'from' in moved_info:
-                moved_from_linenum, moved_from_first = moved_info['from']
-                is_moved_row = True
-
-                cell_2_classes.append('moved-from')
-
-                if moved_from_first:
-                    # This is the start of a new move range.
-                    is_first_moved_row = True
-                    cell_2_classes.append('moved-from-start')
-                    moved_from = {
-                        'class': 'moved-flag',
-                        'line': mark_safe('moved-from-%s'
-                                          % moved_from_linenum),
-                        'target': mark_safe('moved-to-%s' % linenum2),
-                        'text': _('Moved from line %s') % moved_from_linenum,
-                    }
-
-            if 'to' in moved_info:
-                moved_to_linenum, moved_to_first = moved_info['to']
-                is_moved_row = True
-
-                cell_1_classes.append('moved-to')
-
-                if moved_to_first:
-                    # This is the start of a new move range.
-                    is_first_moved_row = True
-                    cell_1_classes.append('moved-to-start')
-                    moved_to = {
-                        'class': 'moved-flag',
-                        'line': mark_safe('moved-to-%s' % moved_to_linenum),
-                        'target': mark_safe('moved-from-%s' % linenum1),
-                        'text': _('Moved to line %s') % moved_to_linenum,
-                    }
-
-        if is_moved_row:
-            row_classes.append('moved-row')
-
-        if is_first_moved_row:
-            row_classes.append('moved-row-start')
-
-        if row_classes:
-            row_class_attr = ' class="%s"' % ' '.join(row_classes)
-
-        if cell_1_classes:
-            cell_1_class_attr = ' class="%s"' % ' '.join(cell_1_classes)
-
-        if cell_2_classes:
-            cell_2_class_attr = ' class="%s"' % ' '.join(cell_2_classes)
-
-        anchor_html = ''
-        begin_collapse_html = ''
-        end_collapse_html = ''
-        moved_from_html = ''
-        moved_to_html = ''
-
-        context = {
-            'chunk_index': chunk_index,
-            'row_class_attr': row_class_attr,
-            'cell_1_class_attr': cell_1_class_attr,
-            'cell_2_class_attr': cell_2_class_attr,
-            'linenum_row': line[0],
-            'linenum1': linenum1,
-            'linenum2': linenum2,
-            'line1': line1,
-            'line2': line2,
-            'moved_from': moved_from,
-            'moved_to': moved_to,
-        }
-
-        if anchor:
-            anchor_html = anchor_fmt % {
-                'anchor': anchor,
-            }
-
-        if show_collapse:
-            begin_collapse_html = begin_collapse_fmt % context
-            end_collapse_html = end_collapse_fmt % context
-
-        if moved_from:
-            moved_from_html = moved_fmt % moved_from
-
-        if moved_to:
-            moved_to_html = moved_fmt % moved_to
-
-        context.update({
-            'anchor_html': anchor_html,
-            'begin_collapse_html': begin_collapse_html,
-            'end_collapse_html': end_collapse_html,
-            'moved_from_html': moved_from_html,
-            'moved_to_html': moved_to_html,
-        })
-
-        result.append(line_fmt % context)
-
-    return ''.join(result)
+    return ''.join(old_chunk_result + result)

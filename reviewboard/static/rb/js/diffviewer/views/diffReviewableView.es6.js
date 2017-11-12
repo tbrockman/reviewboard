@@ -407,7 +407,7 @@ RB.DiffReviewableView = RB.AbstractReviewableView.extend({
             contentWidth,
             filenameWidth;
 
-        if (this.$el.hasClass('diff-error')) {
+        if (this.$el.hasClass('diff-error') || window.innerWidth <= 720) {
             return;
         }
 

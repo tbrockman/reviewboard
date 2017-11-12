@@ -521,6 +521,13 @@ class DiffFragmentView(View):
         may raise a UserVisibleError (best case), or some other form of
         Exception.
         """
+
+        view = self.request.GET.get('view', 'side-by-side')
+        if (view == 'top-down'):
+            context.update({'is_mobile': True})
+        else:
+            context.update({'is_mobile': False})
+
         return get_diff_renderer(
             diff_file,
             extra_context=context,

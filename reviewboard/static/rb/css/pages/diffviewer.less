@@ -599,6 +599,10 @@
   position: absolute;
   width: 1.6em;
 
+  .on-mobile-medium-screen-720({
+    left: 0;
+  });
+
   .commentflag-shadow {
     border-radius: @comment-flag-border-radius;
     opacity: 0.1;
@@ -690,6 +694,10 @@
     &:last-child {
       margin-bottom: 0;
     }
+
+    .on-mobile-medium-screen-720({
+      margin-bottom: 2em;
+    })
   }
 
   .diff-box {
@@ -697,6 +705,12 @@
     border-radius: @box-border-radius;
     box-shadow: @box-shadow;
     overflow: hidden;
+
+    .on-mobile-medium-screen-720({
+      border-right: none;
+      border-left: none;
+      border-radius: 0px;
+    });
   }
 
   .diff-highlight {
@@ -927,3 +941,64 @@
 }
 
 // vim: set et ts=2 sw=2:
+
+/****************************************************************************
+ * Top-down
+ ****************************************************************************/
+.topdown {
+  .sidebyside;
+  display: inline-block;
+  width: 100%;
+
+  thead {
+    display: inline-block;
+    border-bottom: 1px #cacaca solid;
+    background-color: #F0F0F0;
+    width: 100%;
+
+    tr {
+      display: flex;
+      flex-direction: row;
+
+      th {
+        background: none;
+        text-overflow: unset;
+        padding: 1em;
+      }
+
+      th:last-child{
+        flex: 0 0 1em;
+        margin: auto 0 auto auto;
+      }
+
+      .filename-column {
+        flex: 1;
+      }
+    }
+  }
+
+  tbody {
+    width: 100%;
+    display: inline-block;
+
+    tr {
+      td {
+        width: 100%;
+      }
+      th {
+        padding-left: 0;
+        padding-right: 5px;
+      }
+    }
+  }
+  .moved-row {
+    th {
+      padding-right: 4px;
+    }
+  }
+  .filename-row {
+    th {
+      background: none !important;
+    }
+  }
+}

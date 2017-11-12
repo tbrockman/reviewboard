@@ -1904,6 +1904,13 @@
   overflow: hidden;
   position: absolute;
 
+  .on-mobile-medium-screen-720({
+    max-width: 90% !important;
+    left: 0 !important;
+    right: 0;
+    margin: auto;
+  });
+
   form {
     background-color: @comment-dlg-bg;
     display: block;
@@ -2212,6 +2219,17 @@
     margin: 0;
     width: 100%;
     z-index: @z-index-banner;
+
+    .on-mobile-medium-screen-720({
+      text-align: center;
+      padding-right: 0;
+      padding-left: 0;
+
+      h1 {
+        margin-top: 0;
+        display: block !important;
+      }
+    })
   }
 }
 

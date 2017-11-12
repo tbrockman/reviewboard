@@ -23,6 +23,18 @@
   </tr>
 {% enddefinevar %}
 
+{% definevar 'mobile_line_fmt' %}
+  <tr line="%(linenum_row)s"%(row_class_attr)s>
+   <th>%(anchor_html)s%(linenum1)s</th>
+   <th>%(linenum2)s</th>
+   <td%(cell_class_attr)s>
+    %(moved_from_html)s
+    %(moved_to_html)s
+    <pre>%(modified_line)s</pre>
+   </td>
+  </tr>
+{% enddefinevar %}
+
 {% definevar 'anchor_fmt' %}
  <a name="%(anchor)s" class="chunk-anchor"></a>
 {% enddefinevar %}
@@ -45,7 +57,7 @@
 
 {% if not standalone %}
 <table id="file{{file.filediff.id}}" class="{% spaceless %}
-  sidebyside
+  {% if is_mobile %}topdown{% else %}sidebyside{% endif %}
   {% if file.is_new_file %}newfile{% endif %}
   {% if file.binary %}diff-binary{% endif %}
   {% if file.deleted %}diff-deleted{% endif %}
@@ -84,33 +96,39 @@
 {%   endif %}
     {{file.dest_filename}}{% if file.moved %}{% trans " (moved)" %}{% elif file.copied %}{% trans " (copied)" %}{% endif %}{% if file.is_symlink %}{% trans " (symlink)" %}{% endif %}</th>
 {%  endif %}{# file.dest_filename == file.depot_filename #}
+{%  if is_mobile %}
+   <th>
+    <a class="rb-icon rb-icon-download download-link" href="{{download_modified_url}}" alt="{% trans 'Download' %}" title="{% trans 'Download' %}"></a>
+   </th>
   </tr>
-  <tr class="revision-row">
-{%  if file.moved_or_copied and file.num_changes == 0 %}
-   <th colspan="4"></th>
 {%  else %}
-{%   if not file.is_new_file %}
+  <tr class="revision-row">
+{%   if file.moved_or_copied and file.num_changes == 0 %}
+   <th colspan="4"></th>
+{%   else %}
+{%    if not file.is_new_file %}
    <th></th>
    <th class="revision-col">
-{%    if download_orig_url %}
+{%     if download_orig_url %}
     <a class="rb-icon rb-icon-download download-link" href="{{download_orig_url}}" alt="{% trans 'Download' %}" title="{% trans 'Download' %}"></a>
-{%    endif %}
+{%     endif %}
     {{file.revision}}
     </th>
-{%   endif %}
-   <th></th>
-{%   if not file.deleted %}
-   <th class="revision-col">
-{%    if download_modified_url %}
-    <a class="rb-icon rb-icon-download download-link" href="{{download_modified_url}}" alt="{% trans 'Download' %}" title="{% trans 'Download' %}"></a>
 {%    endif %}
+   <th></th>
+{%    if not file.deleted %}
+   <th class="revision-col">
+{%     if download_modified_url %}
+    <a class="rb-icon rb-icon-download download-link" href="{{download_modified_url}}" alt="{% trans 'Download' %}" title="{% trans 'Download' %}"></a>
+{%     endif %}
     {{file.dest_revision}}
    </th>
-{%   else %}
+{%    else %}
    <th></th>
-{%   endif %}
-{%  endif %}{# num_changes and moved #}
+{%    endif %}
+{%   endif %}{# num_changes and moved #}
   </tr>
+{%  endif %}
  </thead>
 {% endif %}{# not standalone #}
 
@@ -221,7 +239,7 @@
 {%     endif %}
 {%     if standalone %} loaded{% endif %}
 {%    endattr %}>
-{%    diff_lines file.index chunk standalone line_fmt anchor_fmt begin_collapse_fmt end_collapse_fmt moved_fmt %}
+{%    diff_lines file.index chunk standalone line_fmt mobile_line_fmt anchor_fmt begin_collapse_fmt end_collapse_fmt moved_fmt is_mobile %}
  </tbody>
 {%   else %}
  <tbody class="diff-header" id="collapsed-chunk{{file.index}}.{{chunk.index}}">
