@@ -13,7 +13,7 @@ RB.DiffViewerPageView = RB.ReviewablePageView.extend({
     ANCHOR_CHUNK: 4,
 
     DIFF_SCROLLDOWN_AMOUNT: 15,
-
+    show: true,
     keyBindings: {
         'aAKP<m': '_selectPreviousFile',
         'fFJN>': '_selectNextFile',
@@ -28,6 +28,7 @@ RB.DiffViewerPageView = RB.ReviewablePageView.extend({
     events: _.extend({
         'click .toggle-whitespace-only-chunks': '_toggleWhitespaceOnlyChunks',
         'click .toggle-show-whitespace': '_toggleShowExtraWhitespace',
+        'click .toggle-show-anchors': '_toggleShowAnchors',
     }, RB.ReviewablePageView.prototype.events),
 
     _fileEntryTemplate: _.template(dedent`
@@ -747,6 +748,22 @@ RB.DiffViewerPageView = RB.ReviewablePageView.extend({
      *     diffReviewable (RB.DiffReviewable):
      *         The DiffReviewable that was added.
      */
+     _toggleShowAnchors: function _toggleShowAnchors() {
+         if (window.innerWidth <= 720) {
+             this.show = !this.show;
+             if (!this.diffList) {
+                 this.diffList = $('#diff_index');
+             }
+             if (this.show) {
+                 this.diffList.show();
+             }
+             else {
+                 this.diffList.hide();
+             }
+             $('#toggle-indicator').toggleClass("fa-caret-down ");
+             $('#toggle-indicator').toggleClass("fa-caret-up ");
+         }
+     },
     _onDiffReviewableAdded(diffReviewable) {
         const file = diffReviewable.get('file');
 

@@ -2,7 +2,7 @@
 
 
 @img_base: '../../images';
-
+@line-added-green: #caf2c1;
 
 /*
  * The .diff-changes-* rules are used only within JavaScript code to
@@ -766,6 +766,10 @@
           font-style: italic;
           padding: 1em 0 0 0;
         }
+
+        .on-mobile-medium-screen-720({
+          cursor: pointer;
+        });
       }
 
       a {
@@ -927,3 +931,97 @@
 }
 
 // vim: set et ts=2 sw=2:
+
+/****************************************************************************
+ * Diff viewer mobile stylings
+ ****************************************************************************/
+
+#toggle-indicator {
+  display: none;
+}
+
+.diff-review-request-body {
+
+  .on-mobile-medium-screen-720({
+
+    #toggle-indicator {
+      display: block;
+    }
+
+     #review-request-main {
+       display: none;
+     }
+
+     #review-request-details {
+       display: none;
+     }
+
+     #diff_revision_label {
+       padding: 1em;
+       flex: 1;
+     }
+
+     #diff_index {
+       border-top: none;
+       width: 100%;
+
+       table {
+         table-layout: fixed;
+
+         tr {
+           display: flex;
+           background-color: #fff;
+           border-bottom: 1px solid #d2d2d2;
+
+           td {
+             background: none;
+             border: none;
+             margin: auto;
+
+             a {
+               color: #333;
+             }
+
+             a:hover {
+               text-decoration: none;
+             }
+           }
+
+           td.diff-file-info {
+             flex-grow: 1;
+             font-size: 12px;
+             font-weight: bold;
+             padding: 1em 1em 1em 0.5em;
+             white-space: normal;
+             word-wrap: break-word;
+           }
+
+           td.diff-file-icon {
+             padding: 1em 0.5em 1em 1em;
+           }
+         }
+
+         tr:last-child {
+           border-bottom: 0;
+         }
+       }
+
+       .diff-chunks-cell {
+         display: none;
+       }
+     }
+
+     .toggle-show-anchors {
+       display: flex;
+       width: 100%;
+       border: 1px solid #bbb;
+       cursor: pointer;
+       background-color: @line-added-green;
+
+       div {
+         margin: auto;
+         padding: 1em;
+       }
+     }
+   });
+}

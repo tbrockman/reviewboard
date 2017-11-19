@@ -11,7 +11,8 @@ RB.DiffFileIndexView = Backbone.View.extend({
     ),
 
     events: {
-        'click a': '_onAnchorClicked'
+        'click a': '_onAnchorClicked',
+        'click .diff-file-info': '_onAnchorClicked',
     },
 
     /*
@@ -220,7 +221,13 @@ RB.DiffFileIndexView = Backbone.View.extend({
      */
     _onAnchorClicked: function(e) {
         e.preventDefault();
-
-        this.trigger('anchorClicked', e.target.href.split('#')[1]);
+        var target;
+        if (e.target.tagName !== 'A') {
+            target = $(e.target).find('a')[0];
+        }
+        else {
+            target = e.target;
+        }
+        this.trigger('anchorClicked', target.href.split('#')[1]);
     }
 });
