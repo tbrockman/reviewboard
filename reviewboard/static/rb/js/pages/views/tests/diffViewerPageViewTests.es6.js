@@ -1,4 +1,5 @@
 suite('rb/pages/views/DiffViewerPageView', function() {
+
     const tableTemplate = _.template(dedent`
         <div class="diff-container">
          <table class="sidebyside">
@@ -37,8 +38,36 @@ suite('rb/pages/views/DiffViewerPageView', function() {
         </div>
     `;
 
+    const fullTemplate = dedent`
+    <div>
+     <div id="review-banner"></div>
+     <div id="review-request">
+      <div id="review-request-banners"></div>
+      <div class="review-request">
+       <div class="review-request-body diff-review-request-body">
+        <div id="diff-details" class="review-request-section loading">
+         <a name="index_header"></a>
+         <div class="toggle-show-anchors">
+          <div id="diff_revision_label"></div>
+          <div>
+           <i id="toggle-indicator" class="fa fa-caret-up" aria-hidden="true"></i>
+          </div>
+         </div>
+         <div id="diff_revision_selector"></div>
+         <div id="diff_comments_hint"></div>
+         <div id="diff_index"><span class="fa fa-spinner fa-pulse"></span></div>
+         <div id="pagination1"></div>
+        </div>
+       </div>
+      </div>
+     </div>
+     <div id="diffs"></div>
+    </div>
+    `;
+
     let page;
     let pageView;
+    let fullPageView;
     let $diffs;
 
     beforeEach(function() {
@@ -475,6 +504,38 @@ suite('rb/pages/views/DiffViewerPageView', function() {
             expect($containers.find('.sidebyside')[0].id)
                 .toBe('file_container_101');
             expect(pageView.queueLoadDiff.calls.count()).toBe(2);
+        });
+    });
+
+    describe("Mobile diff viewer", () => {
+
+        beforeEach(() => {
+            RB.DnDUploader.instance = null;
+
+            window.innerWidth = 720; // set innerWidth to mobile
+            pageView = new RB.DiffViewerPageView({
+                el: $(fullTemplate).appendTo($testsScratch),
+                model: page,
+            });
+            pageView.render();
+        });
+
+        afterEach(function() {
+            RB.DnDUploader.instance = null;
+        });
+
+        it('Toggles diff index table', () => {
+            const diffIndex = $('#diff_index');
+            expect(diffIndex.css('display')).not.toBe('none');
+            pageView._toggleShowAnchors();
+            expect(diffIndex.css('display')).toBe('none');
+        });
+
+        it('Toggle click goes to event handler', () => {
+            const toggle = $('.toggle-show-anchors');
+            spyOn(pageView, '_toggleShowAnchors').and.callThrough();
+            toggle.click();
+            expect(pageView._toggleShowAnchors).toHaveBeenCalled();
         });
     });
 });
