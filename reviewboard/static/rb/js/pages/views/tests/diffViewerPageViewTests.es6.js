@@ -39,35 +39,34 @@ suite('rb/pages/views/DiffViewerPageView', function() {
     `;
 
     const fullTemplate = dedent`
-    <div>
-     <div id="review-banner"></div>
-     <div id="review-request">
-      <div id="review-request-banners"></div>
-      <div class="review-request">
-       <div class="review-request-body diff-review-request-body">
-        <div id="diff-details" class="review-request-section loading">
-         <a name="index_header"></a>
-         <div class="toggle-show-anchors">
-          <div id="diff_revision_label"></div>
-          <div>
-           <i id="toggle-indicator" class="fa fa-caret-up" aria-hidden="true"></i>
+        <div>
+         <div id="review-banner"></div>
+         <div id="review-request">
+          <div id="review-request-banners"></div>
+          <div class="review-request">
+           <div class="review-request-body diff-review-request-body">
+            <div id="diff-details" class="review-request-section loading">
+             <a name="index_header"></a>
+             <div class="toggle-show-anchors">
+              <div id="diff_revision_label"></div>
+              <div>
+               <i id="toggle-indicator" class="fa fa-caret-up" aria-hidden="true"></i>
+              </div>
+             </div>
+             <div id="diff_revision_selector"></div>
+             <div id="diff_comments_hint"></div>
+             <div id="diff_index"><span class="fa fa-spinner fa-pulse"></span></div>
+             <div id="pagination1"></div>
+            </div>
+           </div>
           </div>
          </div>
-         <div id="diff_revision_selector"></div>
-         <div id="diff_comments_hint"></div>
-         <div id="diff_index"><span class="fa fa-spinner fa-pulse"></span></div>
-         <div id="pagination1"></div>
+         <div id="diffs"></div>
         </div>
-       </div>
-      </div>
-     </div>
-     <div id="diffs"></div>
-    </div>
     `;
 
     let page;
     let pageView;
-    let fullPageView;
     let $diffs;
 
     beforeEach(function() {
